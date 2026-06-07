@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -12,15 +12,20 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'users';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nama_lengkap',
+        'username',
         'email',
         'password',
+        'role',
+        'status',
     ];
 
     /**
@@ -41,8 +46,34 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
+
+    // --- Relasi ---
+
+    /** Proyek yang dipegang oleh mentor ini */
+    public function proyek(): HasMany
+    {
+        return $this->hasMany(Proyek::class, 'user_id');
+    }
+
+    /** Tugas yang diberikan ke peserta ini */
+    public function tugas(): HasMany
+    {
+        return $this->hasMany(Tugas::class, 'user_id');
+    }
+
+    /** Evaluasi yang ditulis oleh mentor ini */
+    public function evaluasiSebagaiMentor(): HasMany
+    {
+        return $this->hasMany(Evaluasi::class, 'mentor_id');
+    }
+
+    /** Evaluasi yang ditujukan ke peserta ini */
+    public function evaluasiSebagaiPeserta(): HasMany
+    {
+        return $this->hasMany(Evaluasi::class, 'peserta_id');
+    }
 }
+

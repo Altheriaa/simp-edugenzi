@@ -1,87 +1,88 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Admin;
+use App\Http\Controllers\Mentor;
+use App\Http\Controllers\Peserta;
 
-// dashboard pages
-Route::get('/', function () {
-    return view('pages.dashboard.ecommerce', ['title' => 'E-commerce Dashboard']);
-})->name('dashboard');
+// --- Public: redirect ke login ---
+Route::get('/', fn() => redirect()->route('login'));
 
-// calender pages
-Route::get('/calendar', function () {
-    return view('pages.calender', ['title' => 'Calendar']);
-})->name('calendar');
+// --- Auth ---
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+});
 
-// profile pages
-Route::get('/profile', function () {
-    return view('pages.profile', ['title' => 'Profile']);
-})->name('profile');
+Route::middleware('auth')->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::view('/profile', 'pages.profile')->name('profile');
+});
 
-// form pages
-Route::get('/form-elements', function () {
-    return view('pages.form.form-elements', ['title' => 'Form Elements']);
-})->name('form-elements');
+// --- Admin ---
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')we
+    ->group(function () {
+        Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::resource('pengguna', Admin\PenggunaController::class)->except(['show']);
+    });
 
-// tables pages
-Route::get('/basic-tables', function () {
-    return view('pages.tables.basic-tables', ['title' => 'Basic Tables']);
-})->name('basic-tables');
+// --- Mentor ---
+Route::middleware(['auth', 'role:mentor'])
+    ->prefix('mentor')
+    ->name('mentor.')
+    ->group(function () {
+        Route::get('/dashboard', [Mentor\DashboardController::class, 'index'])->name('dashboard');
 
-// pages
+        // Proyek (CRUD)
+        Route::resource('proyek', Mentor\ProyekController::class);
 
-Route::get('/blank', function () {
-    return view('pages.blank', ['title' => 'Blank']);
-})->name('blank');
+        // Tugas (nested di bawah proyek, shallow)
+        Route::resource('proyek.tugas', Mentor\TugasController::class)
+            ->parameters(['tugas' => 'tugas'])
+            ->shallow()
+            ->except(['index']);
 
-// error pages
-Route::get('/error-404', function () {
-    return view('pages.errors.error-404', ['title' => 'Error 404']);
-})->name('error-404');
+        // Sub-Tugas
+        Route::post('tugas/{tugas}/sub-tugas', [Mentor\SubTugasController::class, 'store'])
+            ->name('sub-tugas.store');
+        Route::patch('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'update'])
+            ->name('sub-tugas.update');
+        Route::delete('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'destroy'])
+            ->name('sub-tugas.destroy');
 
-// chart pages
-Route::get('/line-chart', function () {
-    return view('pages.chart.line-chart', ['title' => 'Line Chart']);
-})->name('line-chart');
+        // Evaluasi
+        Route::resource('evaluasi', Mentor\EvaluasiController::class)
+            ->only(['index', 'store']);
+    });
 
-Route::get('/bar-chart', function () {
-    return view('pages.chart.bar-chart', ['title' => 'Bar Chart']);
-})->name('bar-chart');
+// --- Peserta Didik ---
+Route::middleware(['auth', 'role:peserta_didik'])
+    ->prefix('peserta')
+    ->name('peserta.')
+    ->group(function () {
+        Route::get('/dashboard', [Peserta\DashboardController::class, 'index'])->name('dashboard');
+
+        // Tugas
+        Route::get('tugas', [Peserta\TugasController::class, 'index'])->name('tugas.index');
+        Route::get('tugas/{tugas}', [Peserta\TugasController::class, 'show'])->name('tugas.show');
+        Route::patch('tugas/{tugas}/status', [Peserta\TugasController::class, 'updateStatus'])
+            ->name('tugas.status');
+
+        // Sub-Tugas toggle
+        Route::patch('sub-tugas/{subTugas}/toggle', [Peserta\SubTugasController::class, 'toggle'])
+            ->name('sub-tugas.toggle');
+
+        // Lampiran
+        Route::post('tugas/{tugas}/lampiran', [Peserta\LampiranController::class, 'store'])
+            ->name('lampiran.store');
+        Route::delete('lampiran/{lampiran}', [Peserta\LampiranController::class, 'destroy'])
+            ->name('lampiran.destroy');
+    });
 
 
-// authentication pages
-Route::get('/signin', function () {
-    return view('pages.auth.signin', ['title' => 'Sign In']);
-})->name('signin');
-
-Route::get('/signup', function () {
-    return view('pages.auth.signup', ['title' => 'Sign Up']);
-})->name('signup');
-
-// ui elements pages
-Route::get('/alerts', function () {
-    return view('pages.ui-elements.alerts', ['title' => 'Alerts']);
-})->name('alerts');
-
-Route::get('/avatars', function () {
-    return view('pages.ui-elements.avatars', ['title' => 'Avatars']);
-})->name('avatars');
-
-Route::get('/badge', function () {
-    return view('pages.ui-elements.badges', ['title' => 'Badges']);
-})->name('badges');
-
-Route::get('/buttons', function () {
-    return view('pages.ui-elements.buttons', ['title' => 'Buttons']);
-})->name('buttons');
-
-Route::get('/image', function () {
-    return view('pages.ui-elements.images', ['title' => 'Images']);
-})->name('images');
-
-Route::get('/videos', function () {
-    return view('pages.ui-elements.videos', ['title' => 'Videos']);
-})->name('videos');
 
 
 
