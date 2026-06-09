@@ -31,15 +31,15 @@
                     @error('nama_lengkap') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Username --}}
+                {{-- NIK --}}
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Username <span class="text-red-500">*</span>
+                    <label for="nik" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        NIK <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" id="username" name="username" value="{{ old('username') }}"
-                        class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('username') border-red-400 @enderror"
-                        placeholder="username" />
-                    @error('username') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    <input type="text" id="nik" name="nik" value="{{ old('nik') }}"
+                        class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('nik') border-red-400 @enderror"
+                        placeholder="NIK (16 digit)" />
+                    @error('nik') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Email --}}
@@ -51,6 +51,28 @@
                         class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('email') border-red-400 @enderror"
                         placeholder="email@edugenzi.id" />
                     @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- No HP --}}
+                <div>
+                    <label for="no_hp" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        No HP <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="no_hp" name="no_hp" value="{{ old('no_hp') }}"
+                        class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('no_hp') border-red-400 @enderror"
+                        placeholder="08xxxxxxxxxx" />
+                    @error('no_hp') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Alamat --}}
+                <div>
+                    <label for="alamat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        Alamat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="alamat" name="alamat" value="{{ old('alamat') }}"
+                        class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('alamat') border-red-400 @enderror"
+                        placeholder="Alamat lengkap" />
+                    @error('alamat') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Password --}}

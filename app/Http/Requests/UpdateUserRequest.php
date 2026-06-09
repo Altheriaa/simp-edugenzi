@@ -20,7 +20,9 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'nama_lengkap' => ['required', 'string', 'max:100'],
-            'username'     => ['required', 'string', 'max:50', Rule::unique('users', 'username')->ignore($userId)],
+            'nik'          => ['required', 'string', 'max:16', Rule::unique('users', 'nik')->ignore($userId)],
+            'no_hp'        => ['required', 'string', 'max:15'],
+            'alamat'       => ['required', 'string', 'max:255'],
             'email'        => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
             'password'     => ['nullable', 'confirmed', Password::min(8)],
             'role'         => ['required', 'in:admin,mentor,peserta_didik'],
@@ -32,20 +34,13 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'username.unique'       => 'Username sudah digunakan.',
+            'nik.required'          => 'NIK wajib diisi.',
+            'nik.unique'            => 'NIK sudah terdaftar.',
+            'no_hp.required'        => 'No HP wajib diisi.',
+            'alamat.required'       => 'Alamat wajib diisi.',
             'email.unique'          => 'Email sudah terdaftar.',
             'password.confirmed'    => 'Konfirmasi password tidak sesuai.',
         ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        // Hanya hash password jika diisi
-        if ($this->filled('password')) {
-            $this->merge([
-                'password' => bcrypt($this->password),
-            ]);
-        }
     }
 
     public function validated($key = null, $default = null): array

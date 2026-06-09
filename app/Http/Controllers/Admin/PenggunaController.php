@@ -13,7 +13,22 @@ class PenggunaController extends Controller
 {
     public function index(): View
     {
-        $penggunas = User::latest()->paginate(10);
+        $search = request('search');
+
+        $penggunas = User::query()
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_lengkap', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('no_hp', 'like', "%{$search}%")
+                      ->orWhere('alamat', 'like', "%{$search}%")
+                      ->orWhere('role', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.pengguna.index', compact('penggunas'));
     }

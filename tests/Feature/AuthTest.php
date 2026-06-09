@@ -77,3 +77,41 @@ test('logout mengarahkan kembali ke halaman login', function () {
     $response->assertRedirect('/login');
     $this->assertGuest();
 });
+
+test('halaman register dapat diakses', function () {
+    $response = $this->get('/signup');
+
+    $response->assertStatus(200);
+});
+
+test('register sukses membuat user baru dan redirect ke login', function () {
+    $response = $this->withoutVite()->post('/signup', [
+        'nama_lengkap' => 'Peserta Test',
+        'username' => 'pesertatest',
+        'email' => 'peserta.test@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ]);
+
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHas('success');
+
+    $this->assertDatabaseHas('users', [
+        'username' => 'pesertatest',
+        'email' => 'peserta.test@example.com',
+        'role' => 'peserta_didik',
+    ]);
+});
+
+test('register gagal jika konfirmasi password tidak cocok', function () {
+    $response = $this->withoutVite()->post('/signup', [
+        'nama_lengkap' => 'Peserta Test Fail',
+        'username' => 'pesertatestfail',
+        'email' => 'peserta.testfail@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'berbeda123',
+    ]);
+
+    $response->assertSessionHasErrors('password');
+});
+
