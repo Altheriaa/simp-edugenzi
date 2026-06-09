@@ -1,3 +1,12 @@
+@php
+    $words = explode(' ', auth()->user()->nama_lengkap);
+    $initials = '';
+    foreach ($words as $word) {
+        $initials .= strtoupper(substr($word, 0, 1));
+    }
+    $initials = substr($initials, 0, 2);
+@endphp
+
 <div class="relative" x-data="{
     dropdownOpen: false,
     toggleDropdown() {
@@ -9,8 +18,8 @@
 }" @click.away="closeDropdown()">
     <!-- User Button -->
     <button class="flex items-center text-gray-700 dark:text-gray-400" @click.prevent="toggleDropdown()" type="button">
-        <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-            <img src="/images/user/owner.png" alt="User" />
+        <span class="mr-3 flex items-center justify-center rounded-full h-11 w-11 bg-brand-500 text-white font-semibold text-sm">
+            {{ $initials }}
         </span>
 
         <span class="block mr-1 font-medium text-theme-sm">{{ auth()->user()->nama_lengkap }}</span>

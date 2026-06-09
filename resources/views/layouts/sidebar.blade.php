@@ -78,7 +78,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+    <div class="flex flex-col flex-grow overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav class="mb-6">
             <div class="flex flex-col gap-4">
                 @foreach ($menuGroups as $groupIndex => $menuGroup)
@@ -220,6 +220,21 @@
         </nav>
 
 
+    </div>
+
+    <!-- Logout Section -->
+    <div class="mt-auto py-4 border-t border-gray-200 dark:border-gray-800">
+        <a href="{{ route('logout') }}" class="menu-item group justify-start text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
+            :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 'xl:justify-center' : 'justify-start'">
+            <span class="text-red-600 dark:text-red-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+            </span>
+            <span x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="menu-item-text font-medium">
+                Logout
+            </span>
+        </a>
     </div>
 </aside>
 

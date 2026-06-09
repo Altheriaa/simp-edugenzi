@@ -18,9 +18,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/signup', [RegisterController::class, 'store'])->name('signup.post');
 });
 
+use App\Http\Controllers\ProfileController;
+
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::view('/profile', 'pages.profile')->name('profile');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // --- Admin ---

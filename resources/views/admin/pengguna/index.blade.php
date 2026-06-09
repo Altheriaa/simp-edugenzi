@@ -52,6 +52,9 @@
                                 NIK</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                NO Registrasi</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Nama</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -80,6 +83,7 @@
                                     {{ $loop->iteration + ($penggunas->currentPage() - 1) * $penggunas->perPage() }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ $pengguna->nik }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ $pengguna->no_registrasi }}</td>
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $pengguna->nama_lengkap }}
@@ -91,9 +95,9 @@
                                 <td class="px-6 py-4">
                                     <span
                                         class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
-                                        {{ $pengguna->role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : '' }}
-                                        {{ $pengguna->role === 'mentor' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
-                                        {{ $pengguna->role === 'peserta_didik' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : '' }}">
+                                                                {{ $pengguna->role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : '' }}
+                                                                {{ $pengguna->role === 'mentor' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
+                                                                {{ $pengguna->role === 'peserta_didik' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : '' }}">
                                         {{ ucwords(str_replace('_', ' ', $pengguna->role)) }}
                                     </span>
                                 </td>
@@ -126,7 +130,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-400">
+                                <td colspan="10" class="px-6 py-10 text-center text-sm text-gray-400">
                                     Belum ada pengguna terdaftar.
                                 </td>
                             </tr>

@@ -12,7 +12,7 @@ class StoreRegister extends FormRequest
     {
         return [
             'nama_lengkap' => ['required', 'string', 'max:100'],
-            'username'     => ['required', 'string', 'max:50', 'unique:users,username'],
+            'nik'          => ['required', 'string', 'size:16', 'unique:users,nik'],
             'email'        => ['required', 'email', 'max:100', 'unique:users,email'],
             'password'     => ['required', 'confirmed', Password::min(8)],
         ];
@@ -22,8 +22,9 @@ class StoreRegister extends FormRequest
     {
         return [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'username.required'     => 'Username wajib diisi.',
-            'username.unique'       => 'Username sudah digunakan.',
+            'nik.required'          => 'NIK wajib diisi.',
+            'nik.size'              => 'NIK harus berjumlah 16 digit.',
+            'nik.unique'            => 'NIK sudah terdaftar.',
             'email.unique'          => 'Email sudah terdaftar.',
             'password.confirmed'    => 'Konfirmasi password tidak sesuai.',
         ];
