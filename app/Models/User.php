@@ -77,5 +77,29 @@ class User extends Authenticatable
     {
         return $this->hasMany(Evaluasi::class, 'peserta_id');
     }
+
+    /** Penilaian yang diberikan oleh mentor ini */
+    public function penilaianSebagaiMentor(): HasMany
+    {
+        return $this->hasMany(Penilaian::class, 'mentor_id');
+    }
+
+    /** Penilaian yang diterima oleh peserta ini */
+    public function penilaianSebagaiPeserta(): HasMany
+    {
+        return $this->hasMany(Penilaian::class, 'peserta_id');
+    }
+
+    /** Sertifikat yang diterbitkan oleh mentor ini */
+    public function sertifikatSebagaiMentor(): HasMany
+    {
+        return $this->hasMany(Sertifikat::class, 'mentor_id');
+    }
+
+    /** Sertifikat yang diterima oleh peserta ini */
+    public function sertifikatSebagaiPeserta(): HasMany
+    {
+        return $this->hasMany(Sertifikat::class, 'peserta_id');
+    }
 }
 

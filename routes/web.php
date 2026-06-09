@@ -27,6 +27,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('pengguna', Admin\PenggunaController::class)->except(['show']);
+    Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
+    Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
 });
 
 // --- Mentor ---
@@ -53,6 +55,13 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     // Evaluasi
     Route::resource('evaluasi', Mentor\EvaluasiController::class)
         ->only(['index', 'store']);
+
+    // Penilaian
+    Route::resource('penilaian', Mentor\PenilaianController::class)
+        ->except(['show']);
+
+    // Sertifikat
+    Route::resource('sertifikat', Mentor\SertifikatController::class);
 });
 
 // --- Peserta Didik ---
@@ -74,6 +83,13 @@ Route::middleware(['auth', 'role:peserta_didik'])->prefix('peserta')->name('pese
         ->name('lampiran.store');
     Route::delete('lampiran/{lampiran}', [Peserta\LampiranController::class, 'destroy'])
         ->name('lampiran.destroy');
+
+    // Penilaian
+    Route::get('penilaian', [Peserta\PenilaianController::class, 'index'])->name('penilaian.index');
+
+    // Sertifikat
+    Route::get('sertifikat', [Peserta\SertifikatController::class, 'index'])->name('sertifikat.index');
+    Route::get('sertifikat/{sertifikat}/print', [Peserta\SertifikatController::class, 'print'])->name('sertifikat.print');
 });
 
 

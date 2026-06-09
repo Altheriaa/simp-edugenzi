@@ -102,6 +102,8 @@ routes/
 | `sub_tugas` | `SubTugas` | Checklist item per task |
 | `lampiran` | `Lampiran` | File upload per task |
 | `evaluasi` | `Evaluasi` | Catatan evaluasi Mentor |
+| `penilaian` | `Penilaian` | Nilai bintang EAC bulanan siswa |
+| `sertifikat` | `Sertifikat` | Sertifikat kelulusan/penghargaan siswa |
 
 ### 4.2 Skema Migrasi
 
@@ -187,6 +189,42 @@ Schema::create('evaluasi', function (Blueprint $table) {
 });
 ```
 
+**penilaian**
+```php
+Schema::create('penilaian', function (Blueprint $table) {
+    $table->id('id_penilaian');
+    $table->foreignId('id_peserta')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->foreignId('id_mentor')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->string('bulan', 20);
+    $table->year('tahun');
+    $table->unsignedTinyInteger('m1_kls')->default(0); // 2-5
+    $table->unsignedTinyInteger('m1_pr')->default(0);  // 2-5
+    $table->unsignedTinyInteger('m2_kls')->default(0); // 2-5
+    $table->unsignedTinyInteger('m2_pr')->default(0);  // 2-5
+    $table->unsignedTinyInteger('m3_kls')->default(0); // 2-5
+    $table->unsignedTinyInteger('m3_pr')->default(0);  // 2-5
+    $table->unsignedTinyInteger('m4_kls')->default(0); // 2-5
+    $table->unsignedTinyInteger('m4_pr')->default(0);  // 2-5
+    $table->text('catatan')->nullable();
+    $table->timestamps();
+    $table->unique(['id_peserta', 'bulan', 'tahun']);
+});
+```
+
+**sertifikat**
+```php
+Schema::create('sertifikat', function (Blueprint $table) {
+    $table->id('id_sertifikat');
+    $table->string('nomor_sertifikat', 100)->unique();
+    $table->foreignId('id_peserta')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->foreignId('id_mentor')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->string('nama_program', 150);
+    $table->date('tgl_terbit');
+    $table->string('predikat', 50);
+    $table->timestamps();
+});
+```
+
 ### 4.3 Konvensi Model
 
 - Nama model: **PascalCase singular** → `Proyek`, `SubTugas`, `Lampiran`
@@ -256,6 +294,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('pengguna', Admin\PenggunaController::class);
     Route::get('laporan', [Admin\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('laporan/export-pdf', [Admin\LaporanController::class, 'exportPdf'])->name('laporan.export');
+    Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
+    Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
 });
 
 // --- Mentor ---
@@ -270,6 +310,8 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     Route::get('laporan', [Mentor\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('laporan/export-pdf', [Mentor\LaporanController::class, 'exportPdf'])->name('laporan.export');
     Route::resource('evaluasi', Mentor\EvaluasiController::class)->only(['store', 'index']);
+    Route::resource('penilaian', Mentor\PenilaianController::class);
+    Route::resource('sertifikat', Mentor\SertifikatController::class);
 });
 
 // --- Peserta Didik ---
@@ -282,6 +324,9 @@ Route::middleware(['auth', 'role:peserta_didik'])->prefix('peserta')->name('pese
     Route::patch('sub-tugas/{subTugas}/toggle', [Peserta\SubTugasController::class, 'toggle'])->name('sub-tugas.toggle');
     Route::post('tugas/{tugas}/lampiran', [Peserta\LampiranController::class, 'store'])->name('lampiran.store');
     Route::delete('lampiran/{lampiran}', [Peserta\LampiranController::class, 'destroy'])->name('lampiran.destroy');
+    Route::get('penilaian', [Peserta\PenilaianController::class, 'index'])->name('penilaian.index');
+    Route::get('sertifikat', [Peserta\SertifikatController::class, 'index'])->name('sertifikat.index');
+    Route::get('sertifikat/{sertifikat}/print', [Peserta\SertifikatController::class, 'print'])->name('sertifikat.print');
 });
 ```
 
