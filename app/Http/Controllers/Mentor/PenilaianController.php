@@ -25,12 +25,7 @@ class PenilaianController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-        $bulanList = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-        ];
-
-        return view('mentor.penilaian.index', compact('penilaians', 'pesertas', 'bulanList'));
+        return view('mentor.penilaian.index', compact('penilaians', 'pesertas'));
     }
 
     public function create(): View
@@ -40,12 +35,12 @@ class PenilaianController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-        $bulanList = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-        ];
+        // Kirim data durasi per-peserta ke view (id => max_bulan)
+        $durasiMap = $pesertas->mapWithKeys(fn($p) => [
+            $p->id => $this->maxBulanFromDurasi($p->durasi_pelatihan),
+        ]);
 
-        return view('mentor.penilaian.create', compact('pesertas', 'bulanList'));
+        return view('mentor.penilaian.create', compact('pesertas', 'durasiMap'));
     }
 
     public function store(StorePenilaianRequest $request): RedirectResponse
@@ -68,12 +63,11 @@ class PenilaianController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-        $bulanList = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-        ];
+        $durasiMap = $pesertas->mapWithKeys(fn($p) => [
+            $p->id => $this->maxBulanFromDurasi($p->durasi_pelatihan),
+        ]);
 
-        return view('mentor.penilaian.edit', compact('penilaian', 'pesertas', 'bulanList'));
+        return view('mentor.penilaian.edit', compact('penilaian', 'pesertas', 'durasiMap'));
     }
 
     public function update(UpdatePenilaianRequest $request, Penilaian $penilaian): RedirectResponse
@@ -92,5 +86,13 @@ class PenilaianController extends Controller
 
         return redirect()->route('mentor.penilaian.index')
             ->with('success', 'Penilaian berhasil dihapus.');
+    }
+
+    /** Hitung batas bulan dari string durasi_pelatihan */
+    private function maxBulanFromDurasi(?string $durasi): int
+    {
+        if (!$durasi) return 6;
+        if (str_contains($durasi, '3 Bulan')) return 3;
+        return 6; // default 6 bulan
     }
 }

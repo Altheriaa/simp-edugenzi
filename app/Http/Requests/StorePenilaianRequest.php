@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,10 +15,18 @@ class StorePenilaianRequest extends FormRequest
 
     public function rules(): array
     {
+        // Tentukan batas bulan_ke berdasarkan durasi pelatihan peserta
+        $maxBulan = 6;
+        if ($this->filled('peserta_id')) {
+            $peserta = User::find($this->peserta_id);
+            if ($peserta && str_contains($peserta->durasi_pelatihan ?? '', '3 Bulan')) {
+                $maxBulan = 3;
+            }
+        }
+
         return [
             'peserta_id' => ['required', 'exists:users,id'],
-            'bulan'      => ['required', 'string', 'max:20'],
-            'tahun'      => ['required', 'integer', 'min:2020', 'max:2099'],
+            'bulan_ke'   => ['required', 'integer', 'min:1', "max:{$maxBulan}"],
             'm1_kls'     => ['required', 'integer', 'min:2', 'max:5'],
             'm1_pr'      => ['required', 'integer', 'min:2', 'max:5'],
             'm2_kls'     => ['required', 'integer', 'min:2', 'max:5'],
@@ -35,8 +44,9 @@ class StorePenilaianRequest extends FormRequest
         return [
             'peserta_id.required' => 'Peserta didik wajib dipilih.',
             'peserta_id.exists'   => 'Peserta didik tidak ditemukan.',
-            'bulan.required'      => 'Bulan wajib diisi.',
-            'tahun.required'      => 'Tahun wajib diisi.',
+            'bulan_ke.required'   => 'Bulan pelatihan wajib dipilih.',
+            'bulan_ke.min'        => 'Bulan pelatihan minimal Bulan Ke-1.',
+            'bulan_ke.max'        => 'Bulan pelatihan melebihi durasi pelatihan peserta.',
             '*.min'               => 'Nilai bintang minimal 2.',
             '*.max'               => 'Nilai bintang maksimal 5.',
         ];

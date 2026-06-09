@@ -76,7 +76,7 @@ resources/
 ├── views/
 │   ├── layouts/
 │   │   └── app.blade.php   # Layout utama TailAdmin
-│   ├── auth/               # Halaman login, dll
+│   ├── auth/               # Halaman login, signup, dll
 │   ├── admin/              # View khusus Admin
 │   ├── mentor/             # View khusus Mentor
 │   ├── peserta/            # View khusus Peserta Didik
@@ -96,41 +96,50 @@ routes/
 
 | Tabel | Model | Keterangan |
 |-------|-------|------------|
-| `users` | `User` | Admin, Mentor, Peserta Didik |
-| `proyek` | `Proyek` | Data proyek |
-| `tugas` | `Tugas` | Task dalam proyek |
+| `users` | `User` | Admin, Mentor, Peserta Didik (Dilengkapi NIK, No Registrasi, No HP, Alamat, serta Program Pelatihan, Jenis Kelas, dan Durasi) |
+| `proyek` | `Proyek` | Data proyek (dibuat & dipegang oleh Mentor) |
+| `tugas` | `Tugas` | Task dalam proyek (diberikan kepada Peserta Didik) |
 | `sub_tugas` | `SubTugas` | Checklist item per task |
-| `lampiran` | `Lampiran` | File upload per task |
-| `evaluasi` | `Evaluasi` | Catatan evaluasi Mentor |
-| `penilaian` | `Penilaian` | Nilai bintang EAC bulanan siswa |
-| `sertifikat` | `Sertifikat` | Sertifikat kelulusan/penghargaan siswa |
+| `lampiran` | `Lampiran` | File upload per task (oleh Peserta Didik) |
+| `evaluasi` | `Evaluasi` | Catatan evaluasi proyek oleh Mentor kepada Peserta Didik |
+| `penilaian` | `Penilaian` | Nilai bintang pelatihan bulanan peserta didik (Bulan Ke-1 s.d Bulan Ke-6, Minggu 1-4) |
+| `sertifikat` | `Sertifikat` | Sertifikat kelulusan/penghargaan untuk peserta didik |
 
-### 4.2 Skema Migrasi
+### 4.2 Skema Migrasi (Kondisi Riil & Target)
 
 **users**
 ```php
 Schema::create('users', function (Blueprint $table) {
-    $table->id('id_user');
+    $table->id();
+    $table->string('nik', 16)->unique()->nullable();
+    $table->string('no_registrasi', 50)->unique()->nullable(); // Format: EDU-{timestamp}{counter} (khusus peserta)
     $table->string('nama_lengkap', 100);
-    $table->string('username', 50)->unique();
     $table->string('email', 100)->unique();
+    $table->string('no_hp')->nullable();
+    $table->string('alamat')->nullable();
     $table->string('password');
     $table->enum('role', ['admin', 'mentor', 'peserta_didik']);
     $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
-    $table->timestamps(); // created_at & updated_at
+    
+    // Bidang Program & Durasi Pelatihan (khusus Peserta Didik)
+    $table->string('program_pelatihan', 100)->nullable(); // e.g. 'Desain Grafis & 3D Level 1'
+    $table->enum('jenis_kelas', ['reguler', 'privat'])->nullable();
+    $table->string('durasi_pelatihan', 50)->nullable(); // e.g. '1 Bulan', '3 Bulan', '6 Bulan', '12 X Pertemuan'
+    
     $table->rememberToken();
+    $table->timestamps();
 });
 ```
 
 **proyek**
 ```php
 Schema::create('proyek', function (Blueprint $table) {
-    $table->id('id_proyek');
+    $table->id();
     $table->string('nama_proyek', 100);
     $table->text('deskripsi')->nullable();
     $table->date('tgl_mulai');
     $table->date('tgl_selesai');
-    $table->foreignId('id_mentor')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Mentor
     $table->enum('status_proyek', ['berjalan', 'selesai', 'tertunda'])->default('berjalan');
     $table->timestamps();
 });
@@ -139,9 +148,9 @@ Schema::create('proyek', function (Blueprint $table) {
 **tugas**
 ```php
 Schema::create('tugas', function (Blueprint $table) {
-    $table->id('id_task');
-    $table->foreignId('id_proyek')->constrained('proyek', 'id_proyek')->cascadeOnDelete();
-    $table->foreignId('id_peserta')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->id();
+    $table->foreignId('proyek_id')->constrained('proyek')->cascadeOnDelete();
+    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Peserta
     $table->string('judul_task', 150);
     $table->text('deskripsi_task')->nullable();
     $table->enum('prioritas', ['rendah', 'sedang', 'tinggi'])->default('sedang');
@@ -155,8 +164,8 @@ Schema::create('tugas', function (Blueprint $table) {
 **sub_tugas**
 ```php
 Schema::create('sub_tugas', function (Blueprint $table) {
-    $table->id('id_sub_task');
-    $table->foreignId('id_task')->constrained('tugas', 'id_task')->cascadeOnDelete();
+    $table->id();
+    $table->foreignId('task_id')->constrained('tugas')->cascadeOnDelete();
     $table->string('judul_sub_task', 150);
     $table->tinyInteger('is_selesai')->default(0);
     $table->timestamps();
@@ -166,13 +175,13 @@ Schema::create('sub_tugas', function (Blueprint $table) {
 **lampiran**
 ```php
 Schema::create('lampiran', function (Blueprint $table) {
-    $table->id('id_lampiran');
-    $table->foreignId('id_task')->constrained('tugas', 'id_task')->cascadeOnDelete();
+    $table->id();
+    $table->foreignId('task_id')->constrained('tugas')->cascadeOnDelete();
     $table->string('nama_file', 200);
     $table->string('path_file', 255);
     $table->string('tipe_file', 50);
     $table->integer('ukuran_file'); // dalam KB
-    $table->foreignId('uploaded_by')->constrained('users', 'id_user');
+    $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();
     $table->timestamps();
 });
 ```
@@ -180,10 +189,10 @@ Schema::create('lampiran', function (Blueprint $table) {
 **evaluasi**
 ```php
 Schema::create('evaluasi', function (Blueprint $table) {
-    $table->id('id_evaluasi');
-    $table->foreignId('id_proyek')->constrained('proyek', 'id_proyek')->cascadeOnDelete();
-    $table->foreignId('id_mentor')->constrained('users', 'id_user');
-    $table->foreignId('id_peserta')->constrained('users', 'id_user');
+    $table->id();
+    $table->foreignId('proyek_id')->constrained('proyek')->cascadeOnDelete();
+    $table->foreignId('mentor_id')->constrained('users')->cascadeOnDelete();
+    $table->foreignId('peserta_id')->constrained('users')->cascadeOnDelete();
     $table->text('catatan');
     $table->timestamps();
 });
@@ -192,11 +201,10 @@ Schema::create('evaluasi', function (Blueprint $table) {
 **penilaian**
 ```php
 Schema::create('penilaian', function (Blueprint $table) {
-    $table->id('id_penilaian');
-    $table->foreignId('id_peserta')->constrained('users', 'id_user')->cascadeOnDelete();
-    $table->foreignId('id_mentor')->constrained('users', 'id_user')->cascadeOnDelete();
-    $table->string('bulan', 20);
-    $table->year('tahun');
+    $table->id();
+    $table->foreignId('peserta_id')->constrained('users')->cascadeOnDelete();
+    $table->foreignId('mentor_id')->constrained('users')->cascadeOnDelete();
+    $table->unsignedTinyInteger('bulan_ke'); // Bulan ke-1 s.d Bulan ke-6 (mengikuti durasi pelatihan peserta)
     $table->unsignedTinyInteger('m1_kls')->default(0); // 2-5
     $table->unsignedTinyInteger('m1_pr')->default(0);  // 2-5
     $table->unsignedTinyInteger('m2_kls')->default(0); // 2-5
@@ -207,17 +215,17 @@ Schema::create('penilaian', function (Blueprint $table) {
     $table->unsignedTinyInteger('m4_pr')->default(0);  // 2-5
     $table->text('catatan')->nullable();
     $table->timestamps();
-    $table->unique(['id_peserta', 'bulan', 'tahun']);
+    $table->unique(['peserta_id', 'bulan_ke']);
 });
 ```
 
 **sertifikat**
 ```php
 Schema::create('sertifikat', function (Blueprint $table) {
-    $table->id('id_sertifikat');
+    $table->id();
     $table->string('nomor_sertifikat', 100)->unique();
-    $table->foreignId('id_peserta')->constrained('users', 'id_user')->cascadeOnDelete();
-    $table->foreignId('id_mentor')->constrained('users', 'id_user')->cascadeOnDelete();
+    $table->foreignId('peserta_id')->constrained('users')->cascadeOnDelete();
+    $table->foreignId('mentor_id')->constrained('users')->cascadeOnDelete();
     $table->string('nama_program', 150);
     $table->date('tgl_terbit');
     $table->string('predikat', 50);
@@ -228,7 +236,7 @@ Schema::create('sertifikat', function (Blueprint $table) {
 ### 4.3 Konvensi Model
 
 - Nama model: **PascalCase singular** → `Proyek`, `SubTugas`, `Lampiran`
-- Nama tabel: **snake_case plural** → tapi karena nama tabel custom, selalu definisikan `$table` secara eksplisit
+- Nama tabel: **snake_case plural** (Atau custom didefinisikan secara eksplisit via `$table`)
 - Selalu definisikan `$fillable` — **jangan pakai `$guarded = []`**
 - Selalu definisikan relasi Eloquent lengkap (hasMany, belongsTo, dll)
 
@@ -237,11 +245,10 @@ Schema::create('sertifikat', function (Blueprint $table) {
 class Proyek extends Model
 {
     protected $table = 'proyek';
-    protected $primaryKey = 'id_proyek';
 
     protected $fillable = [
         'nama_proyek', 'deskripsi', 'tgl_mulai',
-        'tgl_selesai', 'id_mentor', 'status_proyek',
+        'tgl_selesai', 'user_id', 'status_proyek',
     ];
 
     protected $casts = [
@@ -251,17 +258,17 @@ class Proyek extends Model
 
     public function mentor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_mentor', 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function tugas(): HasMany
     {
-        return $this->hasMany(Tugas::class, 'id_proyek', 'id_proyek');
+        return $this->hasMany(Tugas::class, 'proyek_id');
     }
 
     public function evaluasi(): HasMany
     {
-        return $this->hasMany(Evaluasi::class, 'id_proyek', 'id_proyek');
+        return $this->hasMany(Evaluasi::class, 'proyek_id');
     }
 }
 ```
@@ -278,22 +285,25 @@ Semua route dikelompokkan berdasarkan **role** menggunakan middleware `CheckRole
 // --- Public ---
 Route::get('/', fn() => redirect()->route('login'));
 
-// --- Auth ---
+// --- Auth (Guest) ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::get('/signup', [RegisterController::class, 'index'])->name('signup');
+    Route::post('/signup', [RegisterController::class, 'store'])->name('signup.post');
 });
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->middleware('auth')
-    ->name('logout');
+
+// --- Auth (General) ---
+Route::middleware('auth')->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 // --- Admin ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
-
-    Route::resource('pengguna', Admin\PenggunaController::class);
-    Route::get('laporan', [Admin\LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('laporan/export-pdf', [Admin\LaporanController::class, 'exportPdf'])->name('laporan.export');
+    Route::resource('pengguna', Admin\PenggunaController::class)->except(['show']);
     Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
     Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
 });
@@ -301,23 +311,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // --- Mentor ---
 Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->group(function () {
     Route::get('/dashboard', [Mentor\DashboardController::class, 'index'])->name('dashboard');
-
     Route::resource('proyek', Mentor\ProyekController::class);
-    Route::resource('proyek.tugas', Mentor\TugasController::class)->shallow();
+    Route::resource('proyek.tugas', Mentor\TugasController::class)->parameters(['tugas' => 'tugas'])->shallow()->except(['index']);
     Route::post('tugas/{tugas}/sub-tugas', [Mentor\SubTugasController::class, 'store'])->name('sub-tugas.store');
     Route::patch('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'update'])->name('sub-tugas.update');
     Route::delete('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'destroy'])->name('sub-tugas.destroy');
-    Route::get('laporan', [Mentor\LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('laporan/export-pdf', [Mentor\LaporanController::class, 'exportPdf'])->name('laporan.export');
-    Route::resource('evaluasi', Mentor\EvaluasiController::class)->only(['store', 'index']);
-    Route::resource('penilaian', Mentor\PenilaianController::class);
+    Route::resource('evaluasi', Mentor\EvaluasiController::class)->only(['index', 'store']);
+    Route::resource('penilaian', Mentor\PenilaianController::class)->except(['show']);
     Route::resource('sertifikat', Mentor\SertifikatController::class);
 });
 
 // --- Peserta Didik ---
 Route::middleware(['auth', 'role:peserta_didik'])->prefix('peserta')->name('peserta.')->group(function () {
     Route::get('/dashboard', [Peserta\DashboardController::class, 'index'])->name('dashboard');
-
     Route::get('tugas', [Peserta\TugasController::class, 'index'])->name('tugas.index');
     Route::get('tugas/{tugas}', [Peserta\TugasController::class, 'show'])->name('tugas.show');
     Route::patch('tugas/{tugas}/status', [Peserta\TugasController::class, 'updateStatus'])->name('tugas.status');
@@ -329,13 +335,6 @@ Route::middleware(['auth', 'role:peserta_didik'])->prefix('peserta')->name('pese
     Route::get('sertifikat/{sertifikat}/print', [Peserta\SertifikatController::class, 'print'])->name('sertifikat.print');
 });
 ```
-
-### Konvensi Route
-
-- Gunakan **resource route** jika ada operasi CRUD penuh
-- Gunakan `shallow()` untuk nested resource agar URL lebih bersih
-- Selalu beri `name()` pada setiap route
-- Prefix sesuai role: `admin.`, `mentor.`, `peserta.`
 
 ---
 
@@ -380,98 +379,17 @@ class CheckRole
 
 - Satu controller hanya menangani **satu resource**
 - Gunakan **Form Request** untuk semua validasi — jangan validasi di controller
-- Gunakan `authorize()` dari Policy di setiap method yang butuh otorisasi
-- Redirect setelah operasi tulis (POST/PUT/DELETE) selalu dengan `->with('success', '...')` atau `->with('error', '...')`
+- Gunakan `authorize()` dari Policy di setiap method yang butuh otorisasi (atau sesuaikan dengan permission logic)
+- Redirect setelah operasi tulis (POST/PUT/DELETE) selalu dengan `->with('success', '...')` or `->with('error', '...')`
 - Tidak ada logika bisnis kompleks di controller — pindahkan ke Service jika perlu
-
-**Contoh Controller:**
-```php
-// app/Http/Controllers/Mentor/ProyekController.php
-
-class ProyekController extends Controller
-{
-    public function index(): View
-    {
-        $proyeks = Proyek::where('id_mentor', Auth::id())
-            ->withCount('tugas')
-            ->latest()
-            ->paginate(10);
-
-        return view('mentor.proyek.index', compact('proyeks'));
-    }
-
-    public function store(StoreProyekRequest $request): RedirectResponse
-    {
-        Proyek::create([
-            ...$request->validated(),
-            'id_mentor' => Auth::id(),
-        ]);
-
-        return redirect()->route('mentor.proyek.index')
-            ->with('success', 'Proyek berhasil dibuat.');
-    }
-
-    public function update(UpdateProyekRequest $request, Proyek $proyek): RedirectResponse
-    {
-        $this->authorize('update', $proyek);
-        $proyek->update($request->validated());
-
-        return redirect()->route('mentor.proyek.index')
-            ->with('success', 'Proyek berhasil diperbarui.');
-    }
-
-    public function destroy(Proyek $proyek): RedirectResponse
-    {
-        $this->authorize('delete', $proyek);
-        $proyek->delete();
-
-        return redirect()->route('mentor.proyek.index')
-            ->with('success', 'Proyek berhasil dihapus.');
-    }
-}
-```
 
 ---
 
 ## 8. Form Request & Validasi
 
-- Buat Form Request **terpisah** untuk store dan update
-- Nama file: `StoreNamaModelRequest.php` dan `UpdateNamaModelRequest.php`
+- Buat Form Request **terpisah** untuk store dan update jika aturannya berbeda
 - Letakkan di `app/Http/Requests/`
 - Selalu override `authorize()` — return `true` jika auth check ada di middleware, atau gunakan Policy
-
-**Contoh:**
-```php
-// app/Http/Requests/StoreTugasRequest.php
-
-class StoreTugasRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return Auth::user()->role === 'mentor';
-    }
-
-    public function rules(): array
-    {
-        return [
-            'judul_task'     => ['required', 'string', 'max:150'],
-            'deskripsi_task' => ['nullable', 'string'],
-            'prioritas'      => ['required', 'in:rendah,sedang,tinggi'],
-            'deadline'       => ['nullable', 'date', 'after_or_equal:today'],
-            'id_peserta'     => ['required', 'exists:users,id_user'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'judul_task.required' => 'Judul tugas wajib diisi.',
-            'prioritas.in'        => 'Prioritas harus rendah, sedang, atau tinggi.',
-            'id_peserta.exists'   => 'Peserta didik tidak ditemukan.',
-        ];
-    }
-}
-```
 
 ---
 
@@ -485,107 +403,6 @@ class StoreTugasRequest extends FormRequest
 - Gunakan `@section('content')` untuk konten utama
 - Komponen reusable (tabel, modal, alert) dibuat sebagai **Blade component** di `resources/views/components/`
 
-### Struktur View per Modul
-
-```
-resources/views/
-├── layouts/
-│   └── app.blade.php
-├── auth/
-│   └── login.blade.php
-├── admin/
-│   ├── dashboard.blade.php
-│   ├── pengguna/
-│   │   ├── index.blade.php
-│   │   ├── create.blade.php
-│   │   └── edit.blade.php
-│   └── laporan/
-│       └── index.blade.php
-├── mentor/
-│   ├── dashboard.blade.php
-│   ├── proyek/
-│   │   ├── index.blade.php
-│   │   ├── create.blade.php
-│   │   ├── edit.blade.php
-│   │   └── show.blade.php
-│   ├── tugas/
-│   │   ├── create.blade.php
-│   │   ├── edit.blade.php
-│   │   └── show.blade.php
-│   └── laporan/
-│       └── index.blade.php
-├── peserta/
-│   ├── dashboard.blade.php
-│   └── tugas/
-│       ├── index.blade.php
-│       └── show.blade.php
-└── components/
-    ├── alert.blade.php
-    ├── badge-status.blade.php
-    ├── badge-prioritas.blade.php
-    ├── modal-confirm.blade.php
-    └── pagination.blade.php
-```
-
-### Flash Message
-
-Selalu tampilkan flash message di layout. Gunakan komponen alert:
-
-```blade
-{{-- resources/views/components/alert.blade.php --}}
-@if (session('success'))
-    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-         class="rounded-lg bg-green-100 p-4 text-green-800 mb-4">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if (session('error'))
-    <div x-data="{ show: true }" x-show="show"
-         class="rounded-lg bg-red-100 p-4 text-red-800 mb-4">
-        {{ session('error') }}
-    </div>
-@endif
-```
-
-### Badge Komponen
-
-```blade
-{{-- resources/views/components/badge-status.blade.php --}}
-@props(['status'])
-
-@php
-$classes = match($status) {
-    'berjalan'    => 'bg-blue-100 text-blue-800',
-    'selesai'     => 'bg-green-100 text-green-800',
-    'tertunda'    => 'bg-yellow-100 text-yellow-800',
-    'to_do'       => 'bg-gray-100 text-gray-700',
-    'in_progress' => 'bg-blue-100 text-blue-800',
-    'done'        => 'bg-green-100 text-green-800',
-    default       => 'bg-gray-100 text-gray-600',
-};
-$labels = match($status) {
-    'berjalan'    => 'Berjalan',
-    'selesai'     => 'Selesai',
-    'tertunda'    => 'Tertunda',
-    'to_do'       => 'To Do',
-    'in_progress' => 'In Progress',
-    'done'        => 'Done',
-    default       => $status,
-};
-@endphp
-
-<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $classes }}">
-    {{ $labels }}
-</span>
-```
-
-**Penggunaan di view:**
-```blade
-<x-badge-status :status="$proyek->status_proyek" />
-<x-badge-status :status="$tugas->status_task" />
-```
-
 ---
 
 ## 10. Autentikasi & Redirect Setelah Login
@@ -594,24 +411,6 @@ Setelah login, redirect berdasarkan role:
 
 ```php
 // app/Http/Controllers/Auth/AuthController.php
-
-public function login(Request $request): RedirectResponse
-{
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
-    }
-
-    $request->session()->regenerate();
-
-    return redirect()->intended($this->redirectBasedOnRole());
-}
 
 private function redirectBasedOnRole(): string
 {
@@ -630,36 +429,9 @@ private function redirectBasedOnRole(): string
 
 - Semua file disimpan di `storage/app/public/lampiran/`
 - Jalankan `php artisan storage:link` sekali setelah setup
-- Validasi tipe file: `pdf`, `jpg`, `jpeg`, `png`, `fig`, `zip`
+- Validasi tipe file: `pdf`, `jpg`, `jpeg`, `png`, `zip`, dll
 - Batas ukuran: **10MB per file**
 - Nama file disimpan dengan format: `{timestamp}_{nama_asli}`
-
-```php
-// Dalam LampiranController@store
-
-public function store(Request $request, Tugas $tugas): RedirectResponse
-{
-    $request->validate([
-        'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,zip'],
-    ]);
-
-    $file      = $request->file('file');
-    $namaAsli  = $file->getClientOriginalName();
-    $namaSimp  = time() . '_' . $namaAsli;
-    $path      = $file->storeAs('lampiran', $namaSimp, 'public');
-
-    Lampiran::create([
-        'id_task'     => $tugas->id_task,
-        'nama_file'   => $namaAsli,
-        'path_file'   => $path,
-        'tipe_file'   => $file->getClientOriginalExtension(),
-        'ukuran_file' => (int) ceil($file->getSize() / 1024),
-        'uploaded_by' => Auth::id(),
-    ]);
-
-    return back()->with('success', 'File berhasil diunggah.');
-}
-```
 
 ---
 
@@ -669,7 +441,7 @@ public function store(Request $request, Tugas $tugas): RedirectResponse
 |---------|----------|--------|
 | Model | PascalCase singular | `Proyek`, `SubTugas` |
 | Controller | PascalCase + Controller | `ProyekController` |
-| Form Request | Store/Update + Model + Request | `StoreProyekRequest` |
+| Form Request | Store/Update + Model + Request | `StoreUserRequest` |
 | Migration | snake_case deskriptif | `create_proyek_table` |
 | Route name | role.resource.action | `mentor.proyek.index` |
 | View folder | snake_case, sesuai role | `mentor/proyek/index` |
@@ -682,118 +454,146 @@ public function store(Request $request, Tugas $tugas): RedirectResponse
 
 ## 13. Keamanan
 
-- **Password** selalu di-hash dengan `bcrypt` — gunakan `Hash::make()`, jangan `md5`
+- **Password** selalu di-hash dengan `bcrypt` — gunakan `Hash::make()` atau validator `hashed`
 - **Mass assignment** — selalu gunakan `$fillable`, tidak ada `$guarded = []`
 - **CSRF** — semua form wajib pakai `@csrf`
-- **Authorization** — gunakan Policy untuk setiap resource; cek `$this->authorize()` di controller
+- **Authorization** — gunakan Policy atau pengecekan role yang ketat
 - **Input validation** — selalu lewat Form Request, jangan percaya raw input
-- **File upload** — validasi `mimes` dan `max` size di setiap upload
-- **SQL** — selalu gunakan Eloquent atau Query Builder; tidak ada raw query kecuali sangat perlu, dan wajib gunakan `DB::select()` dengan binding
 
 ---
 
 ## 14. Policy
 
-Buat Policy untuk setiap model yang butuh otorisasi kepemilikan:
-
-```php
-// app/Policies/ProyekPolicy.php
-
-class ProyekPolicy
-{
-    public function update(User $user, Proyek $proyek): bool
-    {
-        return $user->id_user === $proyek->id_mentor;
-    }
-
-    public function delete(User $user, Proyek $proyek): bool
-    {
-        return $user->id_user === $proyek->id_mentor;
-    }
-}
-```
-
-**Daftarkan di `AppServiceProvider`:**
-```php
-Gate::policy(Proyek::class, ProyekPolicy::class);
-Gate::policy(Tugas::class, TugasPolicy::class);
-Gate::policy(Lampiran::class, LampiranPolicy::class);
-```
+Buat Policy untuk setiap model yang butuh otorisasi kepemilikan.
 
 ---
 
 ## 15. Seeder
 
-Seeder wajib menyediakan data awal untuk development dan testing:
-
-```php
-// database/seeders/DatabaseSeeder.php
-
-public function run(): void
-{
-    // Admin
-    User::create([
-        'nama_lengkap' => 'Admin Edugenzi',
-        'username'     => 'admin',
-        'email'        => 'admin@edugenzi.id',
-        'password'     => Hash::make('password'),
-        'role'         => 'admin',
-        'status'       => 'aktif',
-    ]);
-
-    // Mentor
-    User::create([
-        'nama_lengkap' => 'Mentor Satu',
-        'username'     => 'mentor1',
-        'email'        => 'mentor1@edugenzi.id',
-        'password'     => Hash::make('password'),
-        'role'         => 'mentor',
-        'status'       => 'aktif',
-    ]);
-
-    // Peserta Didik
-    User::create([
-        'nama_lengkap' => 'Peserta Satu',
-        'username'     => 'peserta1',
-        'email'        => 'peserta1@edugenzi.id',
-        'password'     => Hash::make('password'),
-        'role'         => 'peserta_didik',
-        'status'       => 'aktif',
-    ]);
-}
-```
+Seeder wajib menyediakan data awal untuk development dan testing.
 
 ---
 
 ## 16. Hal yang Tidak Boleh Dilakukan Agent
 
-- **Jangan** mengubah nama tabel database — gunakan yang sudah didefinisikan di bagian 4
-- **Jangan** menambah package baru tanpa konfirmasi — gunakan yang sudah ada di Laravel
-- **Jangan** membuat raw query SQL kecuali Eloquent benar-benar tidak bisa
+- **Jangan** mengubah nama tabel database yang sudah riil digunakan di migration
+- **Jangan** menambah package baru tanpa konfirmasi
+- **Jangan** membuat raw query SQL kecuali terpaksa
 - **Jangan** menyimpan logika bisnis kompleks di Blade view
-- **Jangan** menaruh validasi langsung di Controller — selalu gunakan Form Request
+- **Jangan** menaruh validasi langsung di Controller — gunakan Form Request
 - **Jangan** menggunakan `$guarded = []` pada model apapun
 - **Jangan** menyimpan file upload di luar `storage/app/public/`
 - **Jangan** membuat route tanpa nama (`->name()`)
-- **Jangan** mengubah struktur TailAdmin yang sudah ada kecuali diminta
 
 ---
 
 ## 17. Checklist Sebelum Setiap Fitur Selesai
 
-Sebelum menyatakan suatu fitur selesai, pastikan:
-
 - [ ] Migration sudah dibuat dan berjalan
 - [ ] Model sudah punya `$fillable`, `$casts`, dan relasi lengkap
 - [ ] Form Request sudah ada untuk store dan update
-- [ ] Controller sudah menggunakan Form Request dan Policy
+- [ ] Controller sudah menggunakan Form Request
 - [ ] Route sudah diberi nama dan berada di grup middleware yang tepat
 - [ ] View sudah mengextend layout TailAdmin
 - [ ] Flash message sukses/gagal sudah muncul
 - [ ] Tidak ada error di `php artisan test`
-- [ ] Tidak ada N+1 query (gunakan `with()` pada relasi yang dipakai di view)
+
+---
+
+## 18. Skema Pembiayaan & Durasi Pelatihan (Per Juni 2026)
+
+### 18.1 Daftar Program & Durasi Pelatihan
+
+| Program | Jenis Kelas | Pilihan Durasi / Periode |
+|---|---|---|
+| **Desain Grafis & 3D Level 1** | Reguler <br> Privat | 3 Bulan, 6 Bulan <br> 6 Bulan |
+| **Desain Grafis & 3D Level 2** | Reguler | 6 Bulan |
+| **Coding & Ai Level 1** | Reguler <br> Privat | 3 Bulan, 6 Bulan <br> 12 X Pertemuan |
+| **Coding & Ai Level 2** | Reguler <br> Privat | 6 Bulan <br> 12 X Pertemuan |
+| **Robotika Pondasi Energi & Gerak** | Reguler | 1 Bulan |
+| **Public Speaking Berani Cerita & Perkenalan Diri** | Reguler | 3 Bulan |
+| **FOS Dewasa** | Privat | 12 X Pertemuan |
+| **Desain Grafis Dewasa** | Privat | 12 X Pertemuan |
+
+### 18.2 Rincian Biaya per Program
+
+1. **Desain Grafis & 3D Level 1 - Reguler (3 Bulan)**
+   - Per Sesi: Rp47.000
+   - 1 Pertemuan (2 Sesi): Rp94.000
+   - Per Bulan: Rp376.000
+   - Total Pelatihan: Rp1.128.000
+   - Biaya Project Akhir: Baju (Rp87.000) + Gantungan Kunci 3D (Rp20.000) = Total Rp107.000
+
+2. **Desain Grafis & 3D Level 1 - Reguler (6 Bulan)**
+   - Per Sesi: Rp45.000
+   - 1 Pertemuan (2 Sesi): Rp90.000
+   - Per Bulan: Rp360.000
+   - Total Pelatihan: Rp2.160.000
+   - Biaya Project Akhir: Baju (Rp87.000) + Gantungan Kunci 3D (Rp20.000) + Celengan (Rp37.000) = Total Rp144.000
+
+3. **Desain Grafis & 3D Level 1 - Privat (6 Bulan)**
+   - Per Sesi: Rp67.000
+   - 1 Pertemuan (2 Sesi): Rp134.000
+   - Cicilan: Cicilan I (Rp450.000), Cicilan II (Rp450.000), Cicilan III (Rp350.000), Cicilan IV (Rp300.000), Cicilan V (Rp58.000)
+   - Total Pelatihan: Rp1.608.000
+   - Biaya Project Akhir: Baju (Rp87.000) + Gantungan Kunci 3D (Rp20.000) + Celengan (Rp37.000) = Total Rp144.000
+
+4. **Desain Grafis & 3D Level 2 - Reguler (6 Bulan)**
+   - Per Sesi: Rp45.000
+   - 1 Pertemuan (2 Sesi): Rp90.000
+   - Per Bulan: Rp360.000
+   - Total Pelatihan: Rp2.160.000
+   - Biaya Project Akhir: Kotak Pensil (Rp37.000) + Tote bag / Tas Serut (Rp67.000) = Total Rp104.000
+
+5. **Coding & Ai Level 1 - Reguler (3 Bulan)**
+   - Per Sesi: Rp47.000
+   - 1 Pertemuan (2 Sesi): Rp94.000
+   - Per Bulan: Rp376.000
+   - Total Pelatihan: Rp1.128.000
+
+6. **Coding & Ai Level 1 - Reguler (6 Bulan)**
+   - Per Sesi: Rp45.000
+   - 1 Pertemuan (2 Sesi): Rp90.000
+   - Per Bulan: Rp360.000
+   - Total Pelatihan: Rp2.160.000
+
+7. **Coding & Ai Level 2 - Reguler (6 Bulan)**
+   - Per Sesi: Rp45.000
+   - 1 Pertemuan (2 Sesi): Rp90.000
+   - Per Bulan: Rp360.000
+   - Total Pelatihan: Rp2.160.000
+
+8. **Robotika Pondasi Energi & Gerak - Reguler (1 Bulan)**
+   - Per Sesi: Rp67.000
+   - 1 Pertemuan (2 Sesi): Rp134.000
+   - Total Pelatihan: Rp536.000
+   - *Fasilitas: Free Alat Robotika & Bisa dibawa Pulang*
+
+9. **Public Speaking Berani Cerita & Perkenalan Diri - Reguler (3 Bulan)**
+   - Per Sesi: Rp47.000
+   - 1 Pertemuan (2 Sesi): Rp94.000
+   - Per Bulan: Rp376.000
+   - Total Pelatihan: Rp1.128.000
+   - *Fasilitas: Notebook & Bolpoin Public Speaking Edugenzi*
+
+10. **Kelas Privat Lainnya (Coding & Ai Level 1, Coding & Ai Level 2, FOS Dewasa, Desain Grafis Dewasa)**
+    - Per Sesi: Rp67.000
+    - 1 Pertemuan (2 Sesi): Rp134.000
+    - Cicilan: Cicilan I (Rp450.000), Cicilan II (Rp450.000), Cicilan III (Rp350.000), Cicilan IV (Rp300.000), Cicilan V (Rp58.000)
+    - Total Pelatihan: Rp1.608.000
+
+*Catatan: Biaya Pendaftaran untuk seluruh program adalah Rp100.000 (berlaku hingga Juni 2026).*
+
+### 18.3 Skema Penilaian (Bulan Ke-X)
+
+Untuk menyelaraskan dengan durasi pelatihan peserta, skema penilaian diatur sebagai berikut:
+1. **Pilihan Periode**: Menggunakan indikator **Bulan Ke-X** (misal: Bulan Ke-1, Bulan Ke-2, dst.) alih-alih nama bulan kalender (Januari, Februari).
+2. **Batasan Durasi**:
+   - Peserta dengan **durasi 3 bulan** hanya dapat diberikan penilaian untuk **Bulan Ke-1, Bulan Ke-2, dan Bulan Ke-3**.
+   - Peserta dengan **durasi 6 bulan** dapat diberikan penilaian dari **Bulan Ke-1 hingga Bulan Ke-6**.
+3. **Validasi Unik**: Satu peserta hanya boleh memiliki maksimal 1 catatan penilaian untuk setiap `bulan_ke` tertentu (dijamin dengan unique constraint `['peserta_id', 'bulan_ke']` di database).
 
 ---
 
 *Dokumen ini dibuat untuk agent Antigravity — sistem manajemen proyek Edugenzi Banda Aceh.*
-*Versi: 1.0 | Stack: Laravel 12 + Blade + TailAdmin + MySQL*
+*Versi: 1.1 | Stack: Laravel 12 + Blade + TailAdmin + MySQL*

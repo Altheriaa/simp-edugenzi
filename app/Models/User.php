@@ -29,6 +29,9 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'program_pelatihan',
+        'jenis_kelas',
+        'durasi_pelatihan',
     ];
 
     /**

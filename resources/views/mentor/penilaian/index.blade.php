@@ -73,7 +73,9 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $penilaian->bulan }} {{ $penilaian->tahun }}</span>
+                                    <span class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                                        {{ $penilaian->label_bulan }}
+                                    </span>
                                 </td>
                                 @foreach (['m1_kls','m1_pr','m2_kls','m2_pr','m3_kls','m3_pr','m4_kls','m4_pr'] as $key)
                                     <td class="px-4 py-4 text-center">

@@ -13,8 +13,7 @@ class PenilaianController extends Controller
     {
         $penilaians = Penilaian::with('mentor')
             ->where('peserta_id', Auth::id())
-            ->orderByDesc('tahun')
-            ->orderByRaw("FIELD(bulan, 'Desember','November','Oktober','September','Agustus','Juli','Juni','Mei','April','Maret','Februari','Januari')")
+            ->orderBy('bulan_ke')
             ->paginate(6);
 
         return view('peserta.penilaian.index', compact('penilaians'));

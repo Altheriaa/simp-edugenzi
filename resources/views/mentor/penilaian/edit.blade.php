@@ -23,19 +23,25 @@
             @csrf
             @method('PUT')
 
-            {{-- Peserta & Periode --}}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {{-- Peserta & Bulan Ke --}}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label for="peserta_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Peserta Didik <span class="text-red-500">*</span>
                     </label>
                     <select name="peserta_id" id="peserta_id" required
-                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('peserta_id') border-red-400 @enderror">
+                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('peserta_id') border-red-400 @enderror"
+                            @change="$dispatch('peserta-changed', { id: $event.target.value })">
                         <option value="">-- Pilih Peserta --</option>
                         @foreach ($pesertas as $peserta)
-                            <option value="{{ $peserta->id }}" class="dark:bg-gray-900"
-                                {{ (old('peserta_id', $penilaian->peserta_id) == $peserta->id) ? 'selected' : '' }}>
+                            <option value="{{ $peserta->id }}"
+                                    class="dark:bg-gray-900"
+                                    data-max="{{ $durasiMap[$peserta->id] ?? 6 }}"
+                                    {{ (old('peserta_id', $penilaian->peserta_id) == $peserta->id) ? 'selected' : '' }}>
                                 {{ $peserta->nama_lengkap }}
+                                @if($peserta->durasi_pelatihan)
+                                    ({{ $peserta->durasi_pelatihan }})
+                                @endif
                             </option>
                         @endforeach
                     </select>
@@ -44,31 +50,34 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label for="bulan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Bulan <span class="text-red-500">*</span>
-                    </label>
-                    <select name="bulan" id="bulan" required
-                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('bulan') border-red-400 @enderror">
-                        <option value="">-- Pilih Bulan --</option>
-                        @foreach ($bulanList as $b)
-                            <option value="{{ $b }}" class="dark:bg-gray-900"
-                                {{ (old('bulan', $penilaian->bulan) == $b) ? 'selected' : '' }}>{{ $b }}</option>
-                        @endforeach
-                    </select>
-                    @error('bulan')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+                @php
+                    $currentPeserta = $pesertas->find(old('peserta_id', $penilaian->peserta_id));
+                    $initialMax = $durasiMap[$currentPeserta?->id ?? 0] ?? 6;
+                @endphp
 
-                <div>
-                    <label for="tahun" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Tahun <span class="text-red-500">*</span>
+                <div x-data="{
+                        maxBulan: {{ $initialMax }},
+                        bulanKe: {{ old('bulan_ke', $penilaian->bulan_ke) }},
+                        updateMax(id) {
+                            const sel = document.getElementById('peserta_id');
+                            const opt = sel.querySelector('option[value=\''+id+'\']');
+                            this.maxBulan = opt ? parseInt(opt.dataset.max || 6) : 6;
+                            if (this.bulanKe > this.maxBulan) this.bulanKe = this.maxBulan;
+                        }
+                    }"
+                    @peserta-changed.window="updateMax($event.detail.id)">
+                    <label for="bulan_ke" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        Periode Pelatihan <span class="text-red-500">*</span>
+                        <span class="font-normal text-gray-400" x-text="'(maks. Bulan Ke-' + maxBulan + ')'"></span>
                     </label>
-                    <input type="number" name="tahun" id="tahun" required
-                           min="2020" max="2099" value="{{ old('tahun', $penilaian->tahun) }}"
-                           class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('tahun') border-red-400 @enderror">
-                    @error('tahun')
+                    <select name="bulan_ke" id="bulan_ke" required x-model="bulanKe"
+                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('bulan_ke') border-red-400 @enderror">
+                        <template x-for="n in maxBulan" :key="n">
+                            <option :value="n" :selected="n == bulanKe" class="dark:bg-gray-900"
+                                    x-text="'Bulan Ke-' + n"></option>
+                        </template>
+                    </select>
+                    @error('bulan_ke')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>

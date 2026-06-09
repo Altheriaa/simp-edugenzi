@@ -26,20 +26,22 @@
                 </select>
             </div>
             <div>
-                <label for="bulan" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Bulan</label>
-                <select name="bulan" id="bulan"
+                <label for="bulan_ke" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Periode</label>
+                <select name="bulan_ke" id="bulan_ke"
                         class="rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-800 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    <option value="">Semua Bulan</option>
-                    @foreach ($bulanList as $b)
-                        <option value="{{ $b }}" class="dark:bg-gray-900" {{ request('bulan') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                    @endforeach
+                    <option value="">Semua Periode</option>
+                    @for ($b = 1; $b <= 6; $b++)
+                        <option value="{{ $b }}" class="dark:bg-gray-900" {{ request('bulan_ke') == $b ? 'selected' : '' }}>
+                            Bulan Ke-{{ $b }}
+                        </option>
+                    @endfor
                 </select>
             </div>
             <button type="submit"
                     class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 Filter
             </button>
-            @if (request()->hasAny(['peserta_id','bulan']))
+            @if (request()->hasAny(['peserta_id','bulan_ke']))
                 <a href="{{ route('admin.penilaian.index') }}"
                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     Reset
@@ -79,7 +81,9 @@
                                     <p class="text-sm text-gray-600 dark:text-gray-300">{{ $penilaian->mentor->nama_lengkap }}</p>
                                 </td>
                                 <td class="px-6 py-3">
-                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $penilaian->bulan }} {{ $penilaian->tahun }}</span>
+                                    <span class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                                        {{ $penilaian->label_bulan }}
+                                    </span>
                                 </td>
                                 {{-- Per minggu: rata-rata kls & pr --}}
                                 @foreach ([1,2,3,4] as $m)

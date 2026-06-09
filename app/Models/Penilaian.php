@@ -12,8 +12,7 @@ class Penilaian extends Model
     protected $fillable = [
         'peserta_id',
         'mentor_id',
-        'bulan',
-        'tahun',
+        'bulan_ke',
         'm1_kls',
         'm1_pr',
         'm2_kls',
@@ -26,15 +25,15 @@ class Penilaian extends Model
     ];
 
     protected $casts = [
-        'tahun'  => 'integer',
-        'm1_kls' => 'integer',
-        'm1_pr'  => 'integer',
-        'm2_kls' => 'integer',
-        'm2_pr'  => 'integer',
-        'm3_kls' => 'integer',
-        'm3_pr'  => 'integer',
-        'm4_kls' => 'integer',
-        'm4_pr'  => 'integer',
+        'bulan_ke' => 'integer',
+        'm1_kls'   => 'integer',
+        'm1_pr'    => 'integer',
+        'm2_kls'   => 'integer',
+        'm2_pr'    => 'integer',
+        'm3_kls'   => 'integer',
+        'm3_pr'    => 'integer',
+        'm4_kls'   => 'integer',
+        'm4_pr'    => 'integer',
     ];
 
     // --- Relasi ---
@@ -52,6 +51,12 @@ class Penilaian extends Model
     }
 
     // --- Accessor ---
+
+    /** Label periode: "Bulan Ke-1", "Bulan Ke-2", dst. */
+    public function getLabelBulanAttribute(): string
+    {
+        return 'Bulan Ke-' . $this->bulan_ke;
+    }
 
     /** Rata-rata bintang keseluruhan */
     public function getRataRataAttribute(): float

@@ -26,7 +26,7 @@
                     {{-- Header --}}
                     <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-4 flex items-center justify-between">
                         <div>
-                            <p class="text-white font-bold text-base">{{ $penilaian->bulan }} {{ $penilaian->tahun }}</p>
+                            <p class="text-white font-bold text-base">{{ $penilaian->label_bulan }}</p>
                             <p class="text-white/70 text-xs">oleh {{ $penilaian->mentor->nama_lengkap }}</p>
                         </div>
                         <div class="text-center">
