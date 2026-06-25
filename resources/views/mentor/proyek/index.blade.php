@@ -40,6 +40,25 @@
                         @if ($proyek->deskripsi)
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{{ $proyek->deskripsi }}</p>
                         @endif
+
+                        @if($proyek->program_pelatihan_id)
+                        <div class="mb-3 flex flex-wrap gap-2">
+                            <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/20">
+                                {{ $proyek->programPelatihan->nama_program }}
+                            </span>
+                            @if($proyek->jenis_kelas_id)
+                                <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10 dark:bg-purple-900/30 dark:text-purple-400 dark:ring-purple-400/20">
+                                    {{ $proyek->jenisKelas->nama }}
+                                </span>
+                            @endif
+                            @if($proyek->durasi_pelatihan)
+                                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-400/20">
+                                    {{ $proyek->durasi_pelatihan }}
+                                </span>
+                            @endif
+                        </div>
+                        @endif
+
                         <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                             <span class="flex items-center gap-1">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

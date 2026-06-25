@@ -70,6 +70,9 @@
                                 Role</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Program / Kelas</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Status</th>
                             <th
                                 class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -102,6 +105,25 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
+                                    @if($pengguna->role === 'peserta_didik' && $pengguna->programPelatihan)
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">
+                                                {{ $pengguna->programPelatihan->nama_program }}
+                                            </span>
+                                            @if($pengguna->jenisKelas)
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $pengguna->jenisKelas->nama }}
+                                                    @if($pengguna->durasi_pelatihan)
+                                                        ({{ $pengguna->durasi_pelatihan }})
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-gray-400 dark:text-gray-500">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
                                     <x-badge-status :status="$pengguna->status" />
                                 </td>
                                 <td class="px-6 py-4 text-right">
@@ -130,7 +152,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="px-6 py-10 text-center text-sm text-gray-400">
+                                <td colspan="11" class="px-6 py-10 text-center text-sm text-gray-400">
                                     Belum ada pengguna terdaftar.
                                 </td>
                             </tr>

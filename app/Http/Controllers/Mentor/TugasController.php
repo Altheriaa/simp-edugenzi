@@ -20,10 +20,22 @@ class TugasController extends Controller
     {
         Gate::authorize('update', $proyek);
 
-        $pesertaList = User::where('role', 'peserta_didik')
-            ->where('status', 'aktif')
-            ->orderBy('nama_lengkap')
-            ->get();
+        $query = User::where('role', 'peserta_didik')
+            ->where('status', 'aktif');
+
+        if ($proyek->program_pelatihan_id) {
+            $query->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+        }
+
+        if ($proyek->jenis_kelas_id) {
+            $query->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+        }
+
+        if ($proyek->durasi_pelatihan) {
+            $query->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+        }
+
+        $pesertaList = $query->orderBy('nama_lengkap')->get();
 
         return view('mentor.tugas.create', compact('proyek', 'pesertaList'));
     }
@@ -51,10 +63,25 @@ class TugasController extends Controller
     {
         Gate::authorize('update', $tugas->proyek);
 
-        $pesertaList = User::where('role', 'peserta_didik')
-            ->where('status', 'aktif')
-            ->orderBy('nama_lengkap')
-            ->get();
+        $proyek = $tugas->proyek;
+
+        $query = User::where('role', 'peserta_didik')
+            ->where(function ($q) use ($proyek, $tugas) {
+                $q->where(function ($sub) use ($proyek) {
+                    $sub->where('status', 'aktif');
+                    if ($proyek->program_pelatihan_id) {
+                        $sub->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+                    }
+                    if ($proyek->jenis_kelas_id) {
+                        $sub->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+                    }
+                    if ($proyek->durasi_pelatihan) {
+                        $sub->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                    }
+                })->orWhere('id', $tugas->user_id);
+            });
+
+        $pesertaList = $query->orderBy('nama_lengkap')->get();
 
         return view('mentor.tugas.edit', compact('tugas', 'pesertaList'));
     }

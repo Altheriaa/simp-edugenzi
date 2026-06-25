@@ -17,6 +17,9 @@ class Proyek extends Model
         'tgl_selesai',
         'user_id',
         'status_proyek',
+        'program_pelatihan_id',
+        'jenis_kelas_id',
+        'durasi_pelatihan',
     ];
 
     protected $casts = [
@@ -30,6 +33,18 @@ class Proyek extends Model
     public function mentor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** Program pelatihan yang terkait dengan proyek ini */
+    public function programPelatihan(): BelongsTo
+    {
+        return $this->belongsTo(ProgramPelatihan::class, 'program_pelatihan_id');
+    }
+
+    /** Jenis kelas yang terkait dengan proyek ini */
+    public function jenisKelas(): BelongsTo
+    {
+        return $this->belongsTo(JenisKelas::class, 'jenis_kelas_id');
     }
 
     /** Tugas-tugas dalam proyek ini */

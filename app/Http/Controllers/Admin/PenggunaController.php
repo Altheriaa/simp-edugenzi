@@ -29,7 +29,8 @@ class PenggunaController extends Controller
                       ->orWhere('alamat', 'like', "%{$search}%")
                       ->orWhere('role', 'like', "%{$search}%");
                 });
-            })
+            }) 
+            ->with(['programPelatihan', 'jenisKelas'])
             ->latest()
             ->paginate(10)
             ->withQueryString();

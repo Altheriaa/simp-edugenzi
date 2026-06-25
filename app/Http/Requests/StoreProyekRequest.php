@@ -20,6 +20,9 @@ class StoreProyekRequest extends FormRequest
             'tgl_mulai'     => ['required', 'date'],
             'tgl_selesai'   => ['required', 'date', 'after_or_equal:tgl_mulai'],
             'status_proyek' => ['required', 'in:berjalan,selesai,tertunda'],
+            'program_pelatihan_id' => ['nullable', 'exists:program_pelatihans,id'],
+            'jenis_kelas_id'       => ['nullable', 'exists:jenis_kelas,id'],
+            'durasi_pelatihan'     => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -31,6 +34,8 @@ class StoreProyekRequest extends FormRequest
             'tgl_selesai.required'   => 'Tanggal selesai wajib diisi.',
             'tgl_selesai.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
             'status_proyek.in'       => 'Status proyek tidak valid.',
+            'program_pelatihan_id.exists' => 'Program pelatihan tidak valid.',
+            'jenis_kelas_id.exists'  => 'Jenis kelas tidak valid.',
         ];
     }
 }

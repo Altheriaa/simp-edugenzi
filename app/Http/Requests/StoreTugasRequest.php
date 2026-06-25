@@ -14,8 +14,35 @@ class StoreTugasRequest extends FormRequest
 
     public function rules(): array
     {
+        $proyek = $this->route('proyek');
+
         return [
-            'user_id'       => ['required', 'exists:users,id'],
+            'user_id'       => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) use ($proyek) {
+                    if (!$proyek) {
+                        return;
+                    }
+                    $query = \App\Models\User::where('id', $value)
+                        ->where('role', 'peserta_didik')
+                        ->where('status', 'aktif');
+
+                    if ($proyek->program_pelatihan_id) {
+                        $query->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+                    }
+                    if ($proyek->jenis_kelas_id) {
+                        $query->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+                    }
+                    if ($proyek->durasi_pelatihan) {
+                        $query->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                    }
+
+                    if (!$query->exists()) {
+                        $fail('Peserta didik yang dipilih tidak terdaftar di kelas/program proyek ini.');
+                    }
+                }
+            ],
             'judul_task'    => ['required', 'string', 'max:150'],
             'deskripsi_task'=> ['nullable', 'string'],
             'prioritas'     => ['required', 'in:rendah,sedang,tinggi'],
