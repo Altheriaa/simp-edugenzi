@@ -13,34 +13,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin
-        User::create([
-            'nama_lengkap' => 'Admin Edugenzi',
-            'username'     => 'admin',
-            'email'        => 'admin@edugenzi.id',
-            'password'     => Hash::make('password'),
-            'role'         => 'admin',
-            'status'       => 'aktif',
+        // --- Master Tables (harus di-seed lebih dulu) ---
+        $this->call([
+            JenisKelasSeeder::class,
+            ProgramPelatihanSeeder::class,
+            ProgramKelasDurasiSeeder::class,
         ]);
+
+        // --- Users Default ---
+
+        // Admin
+        User::firstOrCreate(
+            ['email' => 'admin@edugenzi.id'],
+            [
+                'nama_lengkap' => 'Admin Edugenzi',
+                'email'        => 'admin@edugenzi.id',
+                'password'     => Hash::make('password'),
+                'role'         => 'admin',
+                'status'       => 'aktif',
+            ]
+        );
 
         // Mentor
-        User::create([
-            'nama_lengkap' => 'Mentor Satu',
-            'username'     => 'mentor1',
-            'email'        => 'mentor1@edugenzi.id',
-            'password'     => Hash::make('password'),
-            'role'         => 'mentor',
-            'status'       => 'aktif',
-        ]);
-
-        // Peserta Didik
-        User::create([
-            'nama_lengkap' => 'Peserta Satu',
-            'username'     => 'peserta1',
-            'email'        => 'peserta1@edugenzi.id',
-            'password'     => Hash::make('password'),
-            'role'         => 'peserta_didik',
-            'status'       => 'aktif',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'mentor1@edugenzi.id'],
+            [
+                'nama_lengkap' => 'Mentor Satu',
+                'email'        => 'mentor1@edugenzi.id',
+                'password'     => Hash::make('password'),
+                'role'         => 'mentor',
+                'status'       => 'aktif',
+            ]
+        );
     }
 }

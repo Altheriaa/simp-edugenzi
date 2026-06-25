@@ -21,6 +21,8 @@
                     @foreach ($pesertas as $p)
                         <option value="{{ $p->id }}" class="dark:bg-gray-900" {{ request('peserta_id') == $p->id ? 'selected' : '' }}>
                             {{ $p->nama_lengkap }}
+                            @if($p->programPelatihan) - {{ $p->programPelatihan->nama_program }} @endif
+                            @if($p->jenisKelas) ({{ $p->jenisKelas->nama }}) @endif
                         </option>
                     @endforeach
                 </select>
@@ -76,6 +78,14 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                                 <td class="px-6 py-3">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $penilaian->peserta->nama_lengkap }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                        @if($penilaian->peserta->programPelatihan)
+                                            {{ $penilaian->peserta->programPelatihan->nama_program }}
+                                        @endif
+                                        @if($penilaian->peserta->jenisKelas)
+                                            <span class="capitalize">({{ $penilaian->peserta->jenisKelas->nama }})</span>
+                                        @endif
+                                    </p>
                                 </td>
                                 <td class="px-6 py-3">
                                     <p class="text-sm text-gray-600 dark:text-gray-300">{{ $penilaian->mentor->nama_lengkap }}</p>

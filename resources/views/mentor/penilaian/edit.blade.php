@@ -39,8 +39,14 @@
                                     data-max="{{ $durasiMap[$peserta->id] ?? 6 }}"
                                     {{ (old('peserta_id', $penilaian->peserta_id) == $peserta->id) ? 'selected' : '' }}>
                                 {{ $peserta->nama_lengkap }}
+                                @if($peserta->programPelatihan)
+                                    - {{ $peserta->programPelatihan->nama_program }}
+                                @endif
+                                @if($peserta->jenisKelas)
+                                    ({{ $peserta->jenisKelas->nama }})
+                                @endif
                                 @if($peserta->durasi_pelatihan)
-                                    ({{ $peserta->durasi_pelatihan }})
+                                    - {{ $peserta->durasi_pelatihan }}
                                 @endif
                             </option>
                         @endforeach

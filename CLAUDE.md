@@ -318,6 +318,7 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     Route::delete('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'destroy'])->name('sub-tugas.destroy');
     Route::resource('evaluasi', Mentor\EvaluasiController::class)->only(['index', 'store']);
     Route::resource('penilaian', Mentor\PenilaianController::class)->except(['show']);
+    Route::get('penilaian/{peserta}/detail', [Mentor\PenilaianController::class, 'detail'])->name('penilaian.detail'); // Detail nilai per peserta
     Route::resource('sertifikat', Mentor\SertifikatController::class);
 });
 
@@ -584,14 +585,24 @@ Seeder wajib menyediakan data awal untuk development dan testing.
 
 *Catatan: Biaya Pendaftaran untuk seluruh program adalah Rp100.000 (berlaku hingga Juni 2026).*
 
-### 18.3 Skema Penilaian (Bulan Ke-X)
+### 18.3 Alur & Skema Penilaian (Bulan Ke-X)
 
 Untuk menyelaraskan dengan durasi pelatihan peserta, skema penilaian diatur sebagai berikut:
-1. **Pilihan Periode**: Menggunakan indikator **Bulan Ke-X** (misal: Bulan Ke-1, Bulan Ke-2, dst.) alih-alih nama bulan kalender (Januari, Februari).
+
+**Alur Tampilan (Mentor):**
+1. `GET /mentor/penilaian` → Halaman **index**: grid kartu semua peserta didik aktif, menampilkan program, durasi, progress bar periode yang sudah dinilai, dan rata-rata bintang.
+2. `GET /mentor/penilaian/{peserta}/detail` → Halaman **detail**: info peserta, tracker per Bulan Ke-X (hijau = sudah dinilai), tabel rincian nilai Minggu 1–4 (Kelas & Proyek) per periode, serta catatan.
+3. `GET /mentor/penilaian/create?peserta_id={id}` → Form tambah penilaian, dengan peserta pra-terpilih jika datang dari halaman detail.
+
+**Aturan Penilaian:**
+1. **Pilihan Periode & Pendaftaran**: Durasi/periode pelatihan (opsi: 1 Bulan, 3 Bulan, dan 6 Bulan) wajib dipilih saat menambahkan atau mengedit data mahasiswa/peserta didik.
 2. **Batasan Durasi**:
-   - Peserta dengan **durasi 3 bulan** hanya dapat diberikan penilaian untuk **Bulan Ke-1, Bulan Ke-2, dan Bulan Ke-3**.
-   - Peserta dengan **durasi 6 bulan** dapat diberikan penilaian dari **Bulan Ke-1 hingga Bulan Ke-6**.
-3. **Validasi Unik**: Satu peserta hanya boleh memiliki maksimal 1 catatan penilaian untuk setiap `bulan_ke` tertentu (dijamin dengan unique constraint `['peserta_id', 'bulan_ke']` di database).
+   - Peserta dengan **durasi 1 Bulan** hanya dapat diberikan penilaian untuk **Bulan Ke-1**.
+   - Peserta dengan **durasi 3 Bulan** hanya dapat diberikan penilaian untuk **Bulan Ke-1, Bulan Ke-2, dan Bulan Ke-3**.
+   - Peserta dengan **durasi 6 Bulan** dapat diberikan penilaian dari **Bulan Ke-1 hingga Bulan Ke-6**.
+3. **Validasi Unik**: Satu peserta hanya boleh memiliki maksimal 1 catatan penilaian untuk setiap `bulan_ke` tertentu (`unique(['peserta_id', 'bulan_ke'])`).
+4. **Dropdown Dinamis / Auto-Terpilih**: Saat mentor mengakses/mengisi form penilaian untuk peserta tertentu, opsi penilaian periode/Bulan Ke-X otomatis disaring dan diset berdasarkan periode pelatihan yang terdaftar untuk peserta tersebut (via Alpine.js + data-max attribute).
+5. **Auto-Terpilih Nilai**: Nilai/periode penilaian default otomatis terarah ke periode aktif/terdaftar yang sesuai.
 
 ---
 

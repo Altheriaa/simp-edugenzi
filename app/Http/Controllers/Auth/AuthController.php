@@ -15,7 +15,7 @@ class AuthController extends Controller
      */
     public function showLogin(): View
     {
-        return view('pages.auth.signin', ['title' => 'Login']);
+        return view("pages.auth.signin", ["title" => "Login"]);
     }
 
     /**
@@ -24,14 +24,17 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required'],
+            "email" => ["required", "email"],
+            "password" => ["required"],
         ]);
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Email atau password salah.',
-            ])->onlyInput('email');
+        if (!Auth::attempt($credentials, $request->boolean("remember"))) {
+            return redirect()
+                ->route("login")
+                ->withErrors([
+                    "email" => "Email atau password salah.",
+                ])
+                ->onlyInput("email");
         }
 
         $request->session()->regenerate();
@@ -49,7 +52,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route("login");
     }
 
     /**
@@ -57,11 +60,11 @@ class AuthController extends Controller
      */
     private function redirectBasedOnRole(): string
     {
-        return match(Auth::user()->role) {
-            'admin'         => route('admin.dashboard'),
-            'mentor'        => route('mentor.dashboard'),
-            'peserta_didik' => route('peserta.dashboard'),
-            default         => route('login'),
+        return match (Auth::user()->role) {
+            "admin" => route("admin.dashboard"),
+            "mentor" => route("mentor.dashboard"),
+            "peserta_didik" => route("peserta.dashboard"),
+            default => route("login"),
         };
     }
 }

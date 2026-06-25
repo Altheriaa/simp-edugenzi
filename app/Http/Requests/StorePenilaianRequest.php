@@ -19,7 +19,10 @@ class StorePenilaianRequest extends FormRequest
         $maxBulan = 6;
         if ($this->filled('peserta_id')) {
             $peserta = User::find($this->peserta_id);
-            if ($peserta && str_contains($peserta->durasi_pelatihan ?? '', '3 Bulan')) {
+            $durasi  = $peserta?->durasi_pelatihan ?? '';
+            if (str_contains($durasi, '1 Bulan')) {
+                $maxBulan = 1;
+            } elseif (str_contains($durasi, '3 Bulan')) {
                 $maxBulan = 3;
             }
         }

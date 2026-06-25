@@ -12,7 +12,7 @@ class PenilaianController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Penilaian::with(['peserta', 'mentor'])->latest();
+        $query = Penilaian::with(['peserta.programPelatihan', 'peserta.jenisKelas', 'mentor'])->latest();
 
         // Filter berdasarkan peserta (opsional)
         if ($request->filled('peserta_id')) {
@@ -25,7 +25,7 @@ class PenilaianController extends Controller
         }
 
         $penilaians = $query->paginate(15)->withQueryString();
-        $pesertas   = User::where('role', 'peserta_didik')->orderBy('nama_lengkap')->get();
+        $pesertas   = User::where('role', 'peserta_didik')->with(['programPelatihan', 'jenisKelas'])->orderBy('nama_lengkap')->get();
 
         return view('admin.penilaian.index', compact('penilaians', 'pesertas'));
     }

@@ -43,7 +43,8 @@
                                         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                                             NIK (Nomor Induk Kependudukan)<span class="text-error-500">*</span>
                                         </label>
-                                        <input type="text" id="nik" name="nik" placeholder="Enter your 16-digit NIK" required
+                                        <input type="text" id="nik" name="nik" placeholder="Enter your 16-digit NIK"
+                                            required
                                             class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
                                     </div>
                                 </div>
@@ -109,7 +110,147 @@
                                     </div>
                                 </div>
 
+                                {{-- Informasi Pelatihan --}}
+                                <div class="space-y-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 p-4"
+                                    x-data="{
+                                            program: '{{ old('program_pelatihan') }}',
+                                            jenisKelas: '{{ old('jenis_kelas') }}',
+                                            durasi: '{{ old('durasi_pelatihan') }}',
+                                            programOptions: {
+                                                'Desain Grafis & 3D Level 1': {
+                                                    reguler: ['3 Bulan', '6 Bulan'],
+                                                    privat:  ['6 Bulan']
+                                                },
+                                                'Desain Grafis & 3D Level 2': {
+                                                    reguler: ['6 Bulan'],
+                                                    privat:  []
+                                                },
+                                                'Coding & Ai Level 1': {
+                                                    reguler: ['3 Bulan', '6 Bulan'],
+                                                    privat:  ['12 X Pertemuan']
+                                                },
+                                                'Coding & Ai Level 2': {
+                                                    reguler: ['6 Bulan'],
+                                                    privat:  ['12 X Pertemuan']
+                                                },
+                                                'Robotika Pondasi Energi & Gerak': {
+                                                    reguler: ['1 Bulan'],
+                                                    privat:  []
+                                                },
+                                                'Public Speaking Berani Cerita & Perkenalan Diri': {
+                                                    reguler: ['3 Bulan'],
+                                                    privat:  []
+                                                },
+                                                'FOS Dewasa': {
+                                                    reguler: [],
+                                                    privat:  ['12 X Pertemuan']
+                                                },
+                                                'Desain Grafis Dewasa': {
+                                                    reguler: [],
+                                                    privat:  ['12 X Pertemuan']
+                                                },
+                                            },
+                                            get availableKelas() {
+                                                if (!this.program || !this.programOptions[this.program]) return [];
+                                                const opts = this.programOptions[this.program];
+                                                let kelas = [];
+                                                if (opts.reguler && opts.reguler.length > 0) kelas.push('reguler');
+                                                if (opts.privat && opts.privat.length > 0) kelas.push('privat');
+                                                return kelas;
+                                            },
+                                            get availableDurasi() {
+                                                if (!this.program || !this.jenisKelas) return [];
+                                                const opts = this.programOptions[this.program];
+                                                if (!opts) return [];
+                                                return opts[this.jenisKelas] || [];
+                                            },
+                                            onProgramChange() {
+                                                this.jenisKelas = '';
+                                                this.durasi = '';
+                                            },
+                                            onKelasChange() {
+                                                this.durasi = '';
+                                                const d = this.availableDurasi;
+                                                if (d.length === 1) this.durasi = d[0];
+                                            },
+                                         }">
+                                    <p
+                                        class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                        Informasi Pelatihan <span class="text-red-500">*</span>
+                                    </p>
+
+                                    {{-- Program Pelatihan --}}
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                            Program Pelatihan <span class="text-error-500">*</span>
+                                        </label>
+                                        <select name="program_pelatihan" id="program_pelatihan" required x-model="program"
+                                            @change="onProgramChange()"
+                                            class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 @error('program_pelatihan') border-red-400 @enderror">
+                                            <option value="">-- Pilih Program --</option>
+                                            <option value="Desain Grafis & 3D Level 1">Desain Grafis & 3D Level 1</option>
+                                            <option value="Desain Grafis & 3D Level 2">Desain Grafis & 3D Level 2</option>
+                                            <option value="Coding & Ai Level 1">Coding & Ai Level 1</option>
+                                            <option value="Coding & Ai Level 2">Coding & Ai Level 2</option>
+                                            <option value="Robotika Pondasi Energi & Gerak">Robotika Pondasi Energi & Gerak
+                                            </option>
+                                            <option value="Public Speaking Berani Cerita & Perkenalan Diri">Public Speaking
+                                            </option>
+                                            <option value="FOS Dewasa">FOS Dewasa</option>
+                                            <option value="Desain Grafis Dewasa">Desain Grafis Dewasa</option>
+                                        </select>
+                                        @error('program_pelatihan')
+                                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- Jenis Kelas & Durasi Pelatihan --}}
+                                    <div class="grid grid-cols-2 gap-3">
+                                        {{-- Jenis Kelas --}}
+                                        <div>
+                                            <label
+                                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                                Jenis Kelas <span class="text-error-500">*</span>
+                                            </label>
+                                            <select name="jenis_kelas" id="jenis_kelas" required x-model="jenisKelas"
+                                                @change="onKelasChange()" :disabled="!program"
+                                                class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed @error('jenis_kelas') border-red-400 @enderror">
+                                                <option value="">-- Pilih Kelas --</option>
+                                                <template x-if="availableKelas.includes('reguler')">
+                                                    <option value="reguler">Reguler</option>
+                                                </template>
+                                                <template x-if="availableKelas.includes('privat')">
+                                                    <option value="privat">Privat</option>
+                                                </template>
+                                            </select>
+                                            @error('jenis_kelas')
+                                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        {{-- Durasi Pelatihan --}}
+                                        <div>
+                                            <label
+                                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                                Durasi / Periode <span class="text-error-500">*</span>
+                                            </label>
+                                            <select name="durasi_pelatihan" id="durasi_pelatihan" required x-model="durasi"
+                                                :disabled="!jenisKelas"
+                                                class="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed @error('durasi_pelatihan') border-red-400 @enderror">
+                                                <option value="">-- Pilih Durasi --</option>
+                                                <template x-for="d in availableDurasi" :key="d">
+                                                    <option :value="d" x-text="d"></option>
+                                                </template>
+                                            </select>
+                                            @error('durasi_pelatihan')
+                                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Checkbox -->
+
                                 <div>
                                     <div x-data="{ checkboxToggle: false }">
                                         <label for="checkboxLabelOne"
@@ -118,7 +259,7 @@
                                                 <input type="checkbox" id="checkboxLabelOne" class="sr-only"
                                                     @change="checkboxToggle = !checkboxToggle" />
                                                 <div :class="checkboxToggle ? 'border-brand-500 bg-brand-500' :
-                                                                                                                        'bg-transparent border-gray-300 dark:border-gray-700'"
+                                                                                                                            'bg-transparent border-gray-300 dark:border-gray-700'"
                                                     class="mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px]">
                                                     <span :class="checkboxToggle ? '' : 'opacity-0'">
                                                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"

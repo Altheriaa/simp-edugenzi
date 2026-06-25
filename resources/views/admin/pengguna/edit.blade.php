@@ -19,7 +19,29 @@
         </div>
 
         {{-- Form --}}
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+             x-data='{
+                role: "{{ old('role', $pengguna->role) }}",
+                programId: "{{ old('program_pelatihan_id', $pengguna->program_pelatihan_id) }}",
+                kelasId:   "{{ old('jenis_kelas_id', $pengguna->jenis_kelas_id) }}",
+                durasi:    "{{ old('durasi_pelatihan', $pengguna->durasi_pelatihan) }}",
+                optionsMap: @json(json_decode($optionsJson, true)),
+                allKelas: @json($jenisKelas->mapWithKeys(fn($jk) => [$jk->id => $jk->nama])),
+                get availableKelas() {
+                    if (!this.programId || !this.optionsMap[this.programId]) return [];
+                    return Object.keys(this.optionsMap[this.programId]);
+                },
+                get availableDurasi() {
+                    if (!this.programId || !this.kelasId) return [];
+                    return (this.optionsMap[this.programId] || {})[this.kelasId] || [];
+                },
+                onProgramChange() { this.kelasId = ""; this.durasi = ""; },
+                onKelasChange()   {
+                    this.durasi = "";
+                    const d = this.availableDurasi;
+                    if (d.length === 1) this.durasi = d[0];
+                }
+             }'>
             <form action="{{ route('admin.pengguna.update', $pengguna) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -100,7 +122,7 @@
                         <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                             Role <span class="text-red-500">*</span>
                         </label>
-                        <select id="role" name="role"
+                        <select id="role" name="role" x-model="role"
                             class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                             <option value="admin" @selected(old('role', $pengguna->role) === 'admin')>Admin</option>
                             <option value="mentor" @selected(old('role', $pengguna->role) === 'mentor')>Mentor</option>
@@ -124,51 +146,53 @@
 
                     {{-- Bidang Pelatihan (hanya muncul jika role = peserta_didik) --}}
                     <div class="sm:col-span-2 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4"
-                         x-data="{ shown: '{{ old('role', $pengguna->role) }}' === 'peserta_didik' }"
-                         x-init="document.getElementById('role').addEventListener('change', e => shown = e.target.value === 'peserta_didik')"
-                         x-show="shown" x-cloak>
+                         x-show="role === 'peserta_didik'" x-cloak>
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Informasi Pelatihan</p>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             {{-- Program Pelatihan --}}
                             <div>
-                                <label for="program_pelatihan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Program Pelatihan</label>
-                                <select id="program_pelatihan" name="program_pelatihan"
+                                <label for="program_pelatihan_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Program Pelatihan</label>
+                                <select id="program_pelatihan_id" name="program_pelatihan_id"
+                                    x-model="programId" @change="onProgramChange()"
                                     class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                                     <option value="">-- Pilih Program --</option>
-                                    <option value="Desain Grafis & 3D Level 1" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Desain Grafis & 3D Level 1')>Desain Grafis & 3D Level 1</option>
-                                    <option value="Desain Grafis & 3D Level 2" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Desain Grafis & 3D Level 2')>Desain Grafis & 3D Level 2</option>
-                                    <option value="Coding & Ai Level 1" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Coding & Ai Level 1')>Coding & Ai Level 1</option>
-                                    <option value="Coding & Ai Level 2" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Coding & Ai Level 2')>Coding & Ai Level 2</option>
-                                    <option value="Robotika Pondasi Energi & Gerak" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Robotika Pondasi Energi & Gerak')>Robotika Pondasi Energi & Gerak</option>
-                                    <option value="Public Speaking Berani Cerita & Perkenalan Diri" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Public Speaking Berani Cerita & Perkenalan Diri')>Public Speaking</option>
-                                    <option value="FOS Dewasa" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'FOS Dewasa')>FOS Dewasa</option>
-                                    <option value="Desain Grafis Dewasa" @selected(old('program_pelatihan', $pengguna->program_pelatihan) === 'Desain Grafis Dewasa')>Desain Grafis Dewasa</option>
+                                    @foreach($programs as $prog)
+                                        <option value="{{ $prog->id }}" @selected(old('program_pelatihan_id', $pengguna->program_pelatihan_id) == $prog->id)>
+                                            {{ $prog->nama_program }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             {{-- Jenis Kelas --}}
                             <div>
-                                <label for="jenis_kelas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Jenis Kelas</label>
-                                <select id="jenis_kelas" name="jenis_kelas"
-                                    class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                <label for="jenis_kelas_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Jenis Kelas</label>
+                                <select id="jenis_kelas_id" name="jenis_kelas_id"
+                                    x-model="kelasId" @change="onKelasChange()"
+                                    :disabled="!programId"
+                                    class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Kelas --</option>
-                                    <option value="reguler" @selected(old('jenis_kelas', $pengguna->jenis_kelas) === 'reguler')>Reguler</option>
-                                    <option value="privat" @selected(old('jenis_kelas', $pengguna->jenis_kelas) === 'privat')>Privat</option>
+                                    <template x-for="k in availableKelas" :key="k">
+                                        <option :value="k" :selected="kelasId == k" x-text="allKelas[k]"></option>
+                                    </template>
                                 </select>
                             </div>
                             {{-- Durasi Pelatihan --}}
                             <div>
-                                <label for="durasi_pelatihan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Durasi Pelatihan</label>
+                                <label for="durasi_pelatihan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Durasi / Periode</label>
                                 <select id="durasi_pelatihan" name="durasi_pelatihan"
-                                    class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                    x-model="durasi"
+                                    :disabled="!kelasId"
+                                    class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Durasi --</option>
-                                    <option value="1 Bulan" @selected(old('durasi_pelatihan', $pengguna->durasi_pelatihan) === '1 Bulan')>1 Bulan</option>
-                                    <option value="3 Bulan" @selected(old('durasi_pelatihan', $pengguna->durasi_pelatihan) === '3 Bulan')>3 Bulan</option>
-                                    <option value="6 Bulan" @selected(old('durasi_pelatihan', $pengguna->durasi_pelatihan) === '6 Bulan')>6 Bulan</option>
-                                    <option value="12 X Pertemuan" @selected(old('durasi_pelatihan', $pengguna->durasi_pelatihan) === '12 X Pertemuan')>12 X Pertemuan</option>
+                                    <template x-for="d in availableDurasi" :key="d">
+                                        <option :value="d" :selected="d === durasi" x-text="d"></option>
+                                    </template>
                                 </select>
                             </div>
                         </div>
                     </div>
+
+
                 </div>
 
                 <div class="mt-6 flex items-center justify-end gap-3">

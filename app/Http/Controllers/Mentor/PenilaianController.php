@@ -13,34 +13,59 @@ use Illuminate\View\View;
 
 class PenilaianController extends Controller
 {
+    /**
+     * Halaman utama: daftar peserta didik yang sudah/belum diberi penilaian oleh mentor ini.
+     */
     public function index(): View
     {
-        $penilaians = Penilaian::with('peserta')
-            ->where('mentor_id', Auth::id())
-            ->latest()
-            ->paginate(10);
-
+        // Ambil semua peserta aktif + data penilaian dari mentor ini (di-eager load)
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->with(['programPelatihan', 'jenisKelas', 'penilaianSebagaiPeserta' => function ($q) {
+                $q->where('mentor_id', Auth::id())->orderBy('bulan_ke');
+            }])
             ->orderBy('nama_lengkap')
-            ->get();
+            ->paginate(12);
 
-        return view('mentor.penilaian.index', compact('penilaians', 'pesertas'));
+        return view('mentor.penilaian.index', compact('pesertas'));
     }
 
+    /**
+     * Halaman detail: semua penilaian (per bulan_ke) untuk satu peserta tertentu.
+     */
+    public function detail(User $peserta): View
+    {
+        abort_if($peserta->role !== 'peserta_didik', 404);
+
+        $penilaians = Penilaian::where('peserta_id', $peserta->id)
+            ->where('mentor_id', Auth::id())
+            ->orderBy('bulan_ke')
+            ->get();
+
+        $maxBulan = $this->maxBulanFromDurasi($peserta->durasi_pelatihan);
+
+        return view('mentor.penilaian.detail', compact('peserta', 'penilaians', 'maxBulan'));
+    }
+
+    /**
+     * Form buat penilaian baru (bisa diakses langsung atau dari halaman detail).
+     */
     public function create(): View
     {
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->with(['programPelatihan', 'jenisKelas'])
             ->orderBy('nama_lengkap')
             ->get();
 
-        // Kirim data durasi per-peserta ke view (id => max_bulan)
         $durasiMap = $pesertas->mapWithKeys(fn($p) => [
             $p->id => $this->maxBulanFromDurasi($p->durasi_pelatihan),
         ]);
 
-        return view('mentor.penilaian.create', compact('pesertas', 'durasiMap'));
+        // Peserta pra-pilih jika datang dari halaman detail (?peserta_id=xxx)
+        $selectedPesertaId = request('peserta_id');
+
+        return view('mentor.penilaian.create', compact('pesertas', 'durasiMap', 'selectedPesertaId'));
     }
 
     public function store(StorePenilaianRequest $request): RedirectResponse
@@ -50,7 +75,9 @@ class PenilaianController extends Controller
             'mentor_id' => Auth::id(),
         ]);
 
-        return redirect()->route('mentor.penilaian.index')
+        // Redirect ke halaman detail peserta yang baru saja dinilai
+        $peserta = User::findOrFail($request->peserta_id);
+        return redirect()->route('mentor.penilaian.detail', $peserta)
             ->with('success', 'Penilaian berhasil disimpan.');
     }
 
@@ -60,6 +87,7 @@ class PenilaianController extends Controller
 
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->with(['programPelatihan', 'jenisKelas'])
             ->orderBy('nama_lengkap')
             ->get();
 
@@ -75,16 +103,19 @@ class PenilaianController extends Controller
         $this->authorize('update', $penilaian);
         $penilaian->update($request->validated());
 
-        return redirect()->route('mentor.penilaian.index')
+        $peserta = User::findOrFail($penilaian->peserta_id);
+        return redirect()->route('mentor.penilaian.detail', $peserta)
             ->with('success', 'Penilaian berhasil diperbarui.');
     }
 
     public function destroy(Penilaian $penilaian): RedirectResponse
     {
         $this->authorize('delete', $penilaian);
+        $pesertaId = $penilaian->peserta_id;
         $penilaian->delete();
 
-        return redirect()->route('mentor.penilaian.index')
+        $peserta = User::findOrFail($pesertaId);
+        return redirect()->route('mentor.penilaian.detail', $peserta)
             ->with('success', 'Penilaian berhasil dihapus.');
     }
 
@@ -92,7 +123,8 @@ class PenilaianController extends Controller
     private function maxBulanFromDurasi(?string $durasi): int
     {
         if (!$durasi) return 6;
+        if (str_contains($durasi, '1 Bulan')) return 1;
         if (str_contains($durasi, '3 Bulan')) return 3;
-        return 6; // default 6 bulan
+        return 6; // default 6 bulan (termasuk 6 Bulan & 12 X Pertemuan)
     }
 }

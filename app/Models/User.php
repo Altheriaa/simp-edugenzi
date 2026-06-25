@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -29,8 +30,8 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
-        'program_pelatihan',
-        'jenis_kelas',
+        'program_pelatihan_id',
+        'jenis_kelas_id',
         'durasi_pelatihan',
     ];
 
@@ -54,6 +55,20 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    // --- Relasi Master Pelatihan ---
+
+    /** Program pelatihan yang diikuti (khusus peserta_didik) */
+    public function programPelatihan(): BelongsTo
+    {
+        return $this->belongsTo(ProgramPelatihan::class, 'program_pelatihan_id');
+    }
+
+    /** Jenis kelas yang diikuti (khusus peserta_didik) */
+    public function jenisKelas(): BelongsTo
+    {
+        return $this->belongsTo(JenisKelas::class, 'jenis_kelas_id');
     }
 
     // --- Relasi ---

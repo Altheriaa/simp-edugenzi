@@ -14,8 +14,8 @@ Route::get('/', fn() => redirect()->route('login'));
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-    Route::get('/signup', [RegisterController::class, 'index'])->name('signup');
-    Route::post('/signup', [RegisterController::class, 'store'])->name('signup.post');
+    // Route::get('/signup', [RegisterController::class, 'index'])->name('signup');
+    // Route::post('/signup', [RegisterController::class, 'store'])->name('signup.post');
 });
 
 use App\Http\Controllers\ProfileController;
@@ -30,12 +30,17 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('pengguna', Admin\PenggunaController::class)->except(['show']);
+    Route::resource('program-pelatihan', Admin\ProgramPelatihanController::class)->except(['show']);
+    Route::post('program-pelatihan/{program}/durasi', [Admin\ProgramPelatihanController::class, 'addDurasi'])->name('program-pelatihan.add-durasi');
+    Route::delete('program-kelas-durasi/{id}', [Admin\ProgramPelatihanController::class, 'removeDurasi'])->name('program-kelas-durasi.destroy');
+    Route::resource('jenis-kelas', Admin\JenisKelasController::class)->except(['show']);
     Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
     Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
 });
 
 // --- Mentor ---
 Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->group(function () {
+    
     Route::get('/dashboard', [Mentor\DashboardController::class, 'index'])->name('dashboard');
 
     // Proyek (CRUD)
@@ -59,7 +64,9 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     Route::resource('evaluasi', Mentor\EvaluasiController::class)
         ->only(['index', 'store']);
 
-    // Penilaian
+    // Penilaian — list peserta, lalu detail per peserta
+    Route::get('penilaian/{peserta}/detail', [Mentor\PenilaianController::class, 'detail'])
+        ->name('penilaian.detail');
     Route::resource('penilaian', Mentor\PenilaianController::class)
         ->except(['show']);
 

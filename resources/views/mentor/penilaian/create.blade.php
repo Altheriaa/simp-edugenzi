@@ -37,10 +37,16 @@
                             <option value="{{ $peserta->id }}"
                                     class="dark:bg-gray-900"
                                     data-max="{{ $durasiMap[$peserta->id] ?? 6 }}"
-                                    {{ old('peserta_id') == $peserta->id ? 'selected' : '' }}>
+                                    {{ (old('peserta_id', $selectedPesertaId) == $peserta->id) ? 'selected' : '' }}>
                                 {{ $peserta->nama_lengkap }}
+                                @if($peserta->programPelatihan)
+                                    - {{ $peserta->programPelatihan->nama_program }}
+                                @endif
+                                @if($peserta->jenisKelas)
+                                    ({{ $peserta->jenisKelas->nama }})
+                                @endif
                                 @if($peserta->durasi_pelatihan)
-                                    ({{ $peserta->durasi_pelatihan }})
+                                    - {{ $peserta->durasi_pelatihan }}
                                 @endif
                             </option>
                         @endforeach
@@ -53,6 +59,11 @@
                 <div x-data="{
                         maxBulan: 6,
                         bulanKe: {{ old('bulan_ke', 1) }},
+                        init() {
+                            const sel = document.getElementById('peserta_id');
+                            const opt = sel.options[sel.selectedIndex];
+                            if (opt && opt.value) this.maxBulan = parseInt(opt.dataset.max || 6);
+                        },
                         updateMax(id) {
                             const sel = document.getElementById('peserta_id');
                             const opt = sel.querySelector('option[value=\''+id+'\']');
