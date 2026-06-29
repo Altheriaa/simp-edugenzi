@@ -15,7 +15,6 @@ class Sertifikat extends Model
         'mentor_id',
         'nama_program',
         'tgl_terbit',
-        'predikat',
     ];
 
     protected $casts = [

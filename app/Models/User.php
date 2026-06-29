@@ -126,5 +126,38 @@ class User extends Authenticatable
     {
         return $this->hasMany(Sertifikat::class, 'peserta_id');
     }
+
+    /** Cek apakah nilai peserta sudah diisi penuh sesuai durasi pelatihan */
+    public function isPenilaianLengkap(): bool
+    {
+        if (!$this->durasi_pelatihan) {
+            return false;
+        }
+
+        $durasi = intval($this->durasi_pelatihan);
+        if ($durasi <= 0) {
+            return false;
+        }
+
+        $penilaians = $this->penilaianSebagaiPeserta()->get();
+        if ($penilaians->count() < $durasi) {
+            return false;
+        }
+
+        $validCount = 0;
+        foreach ($penilaians as $p) {
+            // Semua 8 field nilai dalam bulan tersebut harus > 0
+            if (
+                $p->m1_kls > 0 && $p->m1_pr > 0 &&
+                $p->m2_kls > 0 && $p->m2_pr > 0 &&
+                $p->m3_kls > 0 && $p->m3_pr > 0 &&
+                $p->m4_kls > 0 && $p->m4_pr > 0
+            ) {
+                $validCount++;
+            }
+        }
+
+        return $validCount >= $durasi;
+    }
 }
 

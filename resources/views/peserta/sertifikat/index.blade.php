@@ -22,7 +22,7 @@
     @else
         {{-- Search --}}
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
-            <x-search-bar :action="route('peserta.sertifikat.index')" placeholder="Cari nomor sertifikat, program, predikat..." />
+            <x-search-bar :action="route('peserta.sertifikat.index')" placeholder="Cari nomor sertifikat, program..." />
         </div>
 
         @if ($sertifikats->isEmpty())
@@ -32,24 +32,15 @@
         @else
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sertifikats as $sertifikat)
-                @php
-                    $gradientMap = [
-                        'Dengan Pujian'    => 'from-purple-500 to-purple-700',
-                        'Sangat Memuaskan' => 'from-blue-500 to-blue-700',
-                        'Memuaskan'        => 'from-green-500 to-green-700',
-                        'Cukup'            => 'from-gray-500 to-gray-700',
-                    ];
-                    $gradient = $gradientMap[$sertifikat->predikat] ?? 'from-blue-500 to-blue-700';
-                @endphp
                 <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
-                    <div class="bg-gradient-to-r {{ $gradient }} px-5 py-6 text-center">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-700 px-5 py-6 text-center">
                         <div class="inline-flex items-center justify-center h-12 w-12 rounded-full bg-white/20 mb-3">
                             <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                       d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
                         </div>
-                        <p class="text-white font-bold text-sm">{{ $sertifikat->predikat }}</p>
+                        <p class="text-white font-bold text-sm">Sertifikat</p>
                         <p class="text-white/60 text-xs font-mono mt-1">{{ $sertifikat->nomor_sertifikat }}</p>
                     </div>
 

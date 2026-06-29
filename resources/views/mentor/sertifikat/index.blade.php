@@ -41,23 +41,9 @@
     @else
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sertifikats as $sertifikat)
-                @php
-                    $predikatColor = match($sertifikat->predikat) {
-                        'Dengan Pujian'    => 'from-purple-500 to-purple-700',
-                        'Sangat Memuaskan' => 'from-blue-500 to-blue-700',
-                        'Memuaskan'        => 'from-green-500 to-green-700',
-                        default            => 'from-gray-500 to-gray-700',
-                    };
-                    $predikatBadge = match($sertifikat->predikat) {
-                        'Dengan Pujian'    => 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-                        'Sangat Memuaskan' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-                        'Memuaskan'        => 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-                        default            => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                    };
-                @endphp
                 <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
                     {{-- Header Gradien --}}
-                    <div class="bg-gradient-to-r {{ $predikatColor }} px-5 py-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-700 px-5 py-4">
                         <div class="flex items-center justify-between">
                             <svg class="h-8 w-8 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -71,10 +57,7 @@
                     {{-- Body --}}
                     <div class="p-5 space-y-3">
                         <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $sertifikat->nama_program }}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $predikatBadge }}">
-                                {{ $sertifikat->predikat }}
-                            </span>
+                        <div class="flex justify-end">
                             <span class="text-xs text-gray-400">{{ $sertifikat->tgl_terbit->format('d M Y') }}</span>
                         </div>
 

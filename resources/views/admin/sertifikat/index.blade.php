@@ -38,21 +38,12 @@
                     @endforeach
                 </select>
             </div>
-            <div>
-                <label for="predikat" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Predikat</label>
-                <select name="predikat" id="predikat"
-                        class="rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-800 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    <option value="">Semua Predikat</option>
-                    @foreach ($predikatList as $p)
-                        <option value="{{ $p }}" class="dark:bg-gray-900" {{ request('predikat') == $p ? 'selected' : '' }}>{{ $p }}</option>
-                    @endforeach
-                </select>
             </div>
             <button type="submit"
                     class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 Filter
             </button>
-            @if (request()->hasAny(['peserta_id','predikat','search']))
+            @if (request()->hasAny(['peserta_id','search']))
                 <a href="{{ route('admin.sertifikat.index') }}"
                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     Reset
@@ -75,7 +66,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peserta</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predikat</th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diterbitkan</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mentor</th>
                         </tr>
@@ -83,13 +74,6 @@
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         @foreach ($sertifikats as $sertifikat)
                             @php
-                                $badgeClass = match($sertifikat->predikat) {
-                                    'Dengan Pujian'    => 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-                                    'Sangat Memuaskan' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-                                    'Memuaskan'        => 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-                                    default            => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                                };
-                            @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                                 <td class="px-6 py-3">
                                     <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $sertifikat->nomor_sertifikat }}</span>
@@ -100,11 +84,7 @@
                                 <td class="px-6 py-3">
                                     <p class="text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate">{{ $sertifikat->nama_program }}</p>
                                 </td>
-                                <td class="px-6 py-3">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">
-                                        {{ $sertifikat->predikat }}
-                                    </span>
-                                </td>
+
                                 <td class="px-6 py-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">{{ $sertifikat->tgl_terbit->format('d M Y') }}</span>
                                 </td>

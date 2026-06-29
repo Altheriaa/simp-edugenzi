@@ -49,27 +49,14 @@
                     @error('peserta_id')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
+                    @if($pesertas->isEmpty())
+                        <p class="mt-1.5 text-xs text-orange-500 font-medium">
+                            <svg class="inline w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            Tidak ada peserta didik di proyek Anda yang nilainya sudah terisi penuh (lengkap).
+                        </p>
+                    @endif
                 </div>
 
-                {{-- Predikat --}}
-                <div>
-                    <label for="predikat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Predikat <span class="text-red-500">*</span>
-                    </label>
-                    <select name="predikat" id="predikat" required
-                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('predikat') border-red-400 @enderror">
-                        <option value="">-- Pilih Predikat --</option>
-                        @foreach ($predikatList as $p)
-                            <option value="{{ $p }}" class="dark:bg-gray-900"
-                                {{ (old('predikat', $sertifikat->predikat) == $p) ? 'selected' : '' }}>
-                                {{ $p }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('predikat')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
 
                 {{-- Nama Program --}}
                 <div class="sm:col-span-2">

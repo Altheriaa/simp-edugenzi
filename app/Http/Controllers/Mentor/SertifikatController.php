@@ -23,7 +23,6 @@ class SertifikatController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('nomor_sertifikat', 'like', "%{$search}%")
                       ->orWhere('nama_program', 'like', "%{$search}%")
-                      ->orWhere('predikat', 'like', "%{$search}%")
                       ->orWhereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"));
                 });
             })
@@ -37,11 +36,14 @@ class SertifikatController extends Controller
                 $query->where('proyek.user_id', Auth::id());
             })
             ->orderBy('nama_lengkap')
-            ->get();
+            ->get()
+            ->filter(fn($p) => $p->isPenilaianLengkap())
+            ->filter(function($p) {
+                $namaProgram = $p->programPelatihan ? $p->programPelatihan->nama_program : '-';
+                return !$p->sertifikatSebagaiPeserta()->where('nama_program', $namaProgram)->exists();
+            });
 
-        $predikatList = ['Dengan Pujian', 'Sangat Memuaskan', 'Memuaskan', 'Cukup'];
-
-        return view('mentor.sertifikat.index', compact('sertifikats', 'pesertas', 'predikatList'));
+        return view('mentor.sertifikat.index', compact('sertifikats', 'pesertas'));
     }
 
     public function create(): View
@@ -52,11 +54,14 @@ class SertifikatController extends Controller
                 $query->where('proyek.user_id', Auth::id());
             })
             ->orderBy('nama_lengkap')
-            ->get();
+            ->get()
+            ->filter(fn($p) => $p->isPenilaianLengkap())
+            ->filter(function($p) {
+                $namaProgram = $p->programPelatihan ? $p->programPelatihan->nama_program : '-';
+                return !$p->sertifikatSebagaiPeserta()->where('nama_program', $namaProgram)->exists();
+            });
 
-        $predikatList = ['Dengan Pujian', 'Sangat Memuaskan', 'Memuaskan', 'Cukup'];
-
-        return view('mentor.sertifikat.create', compact('pesertas', 'predikatList'));
+        return view('mentor.sertifikat.create', compact('pesertas'));
     }
 
     public function store(StoreSertifikatRequest $request): RedirectResponse
@@ -65,6 +70,13 @@ class SertifikatController extends Controller
         
         if (!$peserta->proyekDiikuti()->where('proyek.user_id', Auth::id())->exists()) {
             return back()->with('error', 'Peserta tidak terdaftar di proyek Anda.');
+        }
+
+        $namaProgram = $peserta->programPelatihan ? $peserta->programPelatihan->nama_program : '-';
+
+        // Cek duplikat sertifikat untuk program yang sama
+        if ($peserta->sertifikatSebagaiPeserta()->where('nama_program', $namaProgram)->exists()) {
+            return back()->with('error', 'Peserta ini sudah memiliki sertifikat untuk program tersebut.');
         }
 
         // Generate nomor sertifikat otomatis: EDG/YYYY/XXXX
@@ -77,8 +89,6 @@ class SertifikatController extends Controller
             $urutan = 1;
         }
         $nomor  = 'EDG/' . $tahun . '/' . str_pad($urutan, 4, '0', STR_PAD_LEFT);
-
-        $namaProgram = $peserta->programPelatihan ? $peserta->programPelatihan->nama_program : '-';
 
         Sertifikat::create([
             ...$request->validated(),
@@ -109,11 +119,16 @@ class SertifikatController extends Controller
                 $query->where('proyek.user_id', Auth::id());
             })
             ->orderBy('nama_lengkap')
-            ->get();
+            ->get()
+            ->filter(function($p) use ($sertifikat) {
+                if ($p->id === $sertifikat->peserta_id) return true;
+                if (!$p->isPenilaianLengkap()) return false;
+                
+                $namaProgram = $p->programPelatihan ? $p->programPelatihan->nama_program : '-';
+                return !$p->sertifikatSebagaiPeserta()->where('nama_program', $namaProgram)->exists();
+            });
 
-        $predikatList = ['Dengan Pujian', 'Sangat Memuaskan', 'Memuaskan', 'Cukup'];
-
-        return view('mentor.sertifikat.edit', compact('sertifikat', 'pesertas', 'predikatList'));
+        return view('mentor.sertifikat.edit', compact('sertifikat', 'pesertas'));
     }
 
     public function update(UpdateSertifikatRequest $request, Sertifikat $sertifikat): RedirectResponse
@@ -122,6 +137,13 @@ class SertifikatController extends Controller
 
         $peserta = User::with('programPelatihan')->findOrFail($request->peserta_id);
         $namaProgram = $peserta->programPelatihan ? $peserta->programPelatihan->nama_program : '-';
+
+        // Cek duplikat jika peserta diubah
+        if ($peserta->id !== $sertifikat->peserta_id) {
+            if ($peserta->sertifikatSebagaiPeserta()->where('nama_program', $namaProgram)->exists()) {
+                return back()->with('error', 'Peserta ini sudah memiliki sertifikat untuk program tersebut.');
+            }
+        }
 
         $sertifikat->update([
             ...$request->validated(),
