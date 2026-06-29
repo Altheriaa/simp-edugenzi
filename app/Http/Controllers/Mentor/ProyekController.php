@@ -18,11 +18,20 @@ class ProyekController extends Controller
 {
     public function index(): View
     {
+        $search = request('search');
+
         $proyeks = Proyek::where('user_id', Auth::id())
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_proyek', 'like', "%{$search}%")
+                      ->orWhere('deskripsi', 'like', "%{$search}%");
+                });
+            })
             ->with(['programPelatihan', 'jenisKelas'])
             ->withCount('tugas')
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('mentor.proyek.index', compact('proyeks'));
     }
@@ -70,6 +79,14 @@ class ProyekController extends Controller
     public function update(UpdateProyekRequest $request, Proyek $proyek): RedirectResponse
     {
         Gate::authorize('update', $proyek);
+        
+        if ($request->status_proyek === 'selesai') {
+            $hasPendingTasks = $proyek->tugas()->where('status_task', '!=', 'done')->exists();
+            if ($hasPendingTasks) {
+                return back()->with('error', 'Tidak dapat menyelesaikan proyek. Masih ada tugas yang belum selesai.');
+            }
+        }
+
         $proyek->update($request->validated());
 
         return redirect()->route('mentor.proyek.index')

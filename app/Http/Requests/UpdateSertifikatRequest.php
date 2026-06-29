@@ -16,7 +16,6 @@ class UpdateSertifikatRequest extends FormRequest
     {
         return [
             'peserta_id'       => ['required', 'exists:users,id'],
-            'nama_program'     => ['required', 'string', 'max:150'],
             'tgl_terbit'       => ['required', 'date'],
             'predikat'         => ['required', 'string', 'in:Dengan Pujian,Sangat Memuaskan,Memuaskan,Cukup'],
         ];

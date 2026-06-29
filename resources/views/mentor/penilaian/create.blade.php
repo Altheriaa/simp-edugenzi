@@ -38,7 +38,7 @@
                                     class="dark:bg-gray-900"
                                     data-max="{{ $durasiMap[$peserta->id] ?? 6 }}"
                                     {{ (old('peserta_id', $selectedPesertaId) == $peserta->id) ? 'selected' : '' }}>
-                                {{ $peserta->nama_lengkap }}
+                                {{ $peserta->no_registrasi }} - {{ $peserta->nama_lengkap }}
                                 @if($peserta->programPelatihan)
                                     - {{ $peserta->programPelatihan->nama_program }}
                                 @endif
@@ -58,7 +58,7 @@
 
                 <div x-data="{
                         maxBulan: 6,
-                        bulanKe: {{ old('bulan_ke', 1) }},
+                        bulanKe: {{ old('bulan_ke', $nextBulan ?? 1) }},
                         init() {
                             const sel = document.getElementById('peserta_id');
                             const opt = sel.options[sel.selectedIndex];

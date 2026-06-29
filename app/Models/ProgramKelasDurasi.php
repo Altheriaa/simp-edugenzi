@@ -13,6 +13,7 @@ class ProgramKelasDurasi extends Model
         'program_pelatihan_id',
         'jenis_kelas_id',
         'durasi_pelatihan',
+        'durasi_bulan',
     ];
 
     public function programPelatihan(): BelongsTo

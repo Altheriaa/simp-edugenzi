@@ -58,4 +58,10 @@ class Proyek extends Model
     {
         return $this->hasMany(Evaluasi::class, 'proyek_id');
     }
+
+    /** Peserta didik yang terlibat dalam proyek ini */
+    public function peserta(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'proyek_user', 'proyek_id', 'user_id')->withTimestamps();
+    }
 }

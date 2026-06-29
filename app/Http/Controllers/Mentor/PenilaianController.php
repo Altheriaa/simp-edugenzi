@@ -7,6 +7,7 @@ use App\Http\Requests\StorePenilaianRequest;
 use App\Http\Requests\UpdatePenilaianRequest;
 use App\Models\Penilaian;
 use App\Models\User;
+use App\Models\ProgramKelasDurasi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -18,14 +19,23 @@ class PenilaianController extends Controller
      */
     public function index(): View
     {
+        $search = request('search');
+
         // Ambil semua peserta aktif + data penilaian dari mentor ini (di-eager load)
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
+            ->when($search, function ($query, $search) {
+                $query->where('nama_lengkap', 'like', "%{$search}%");
+            })
             ->with(['programPelatihan', 'jenisKelas', 'penilaianSebagaiPeserta' => function ($q) {
                 $q->where('mentor_id', Auth::id())->orderBy('bulan_ke');
             }])
             ->orderBy('nama_lengkap')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         return view('mentor.penilaian.index', compact('pesertas'));
     }
@@ -42,7 +52,7 @@ class PenilaianController extends Controller
             ->orderBy('bulan_ke')
             ->get();
 
-        $maxBulan = $this->maxBulanFromDurasi($peserta->durasi_pelatihan);
+        $maxBulan = $this->maxBulanFromPeserta($peserta);
 
         return view('mentor.penilaian.detail', compact('peserta', 'penilaians', 'maxBulan'));
     }
@@ -54,22 +64,48 @@ class PenilaianController extends Controller
     {
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
             ->with(['programPelatihan', 'jenisKelas'])
             ->orderBy('nama_lengkap')
             ->get();
 
         $durasiMap = $pesertas->mapWithKeys(fn($p) => [
-            $p->id => $this->maxBulanFromDurasi($p->durasi_pelatihan),
+            $p->id => $this->maxBulanFromPeserta($p),
         ]);
 
         // Peserta pra-pilih jika datang dari halaman detail (?peserta_id=xxx)
         $selectedPesertaId = request('peserta_id');
+        
+        // Hitung default bulan_ke (bulan berikutnya yang belum dinilai)
+        $nextBulan = 1;
+        if ($selectedPesertaId) {
+            $penilaiansAda = Penilaian::where('peserta_id', $selectedPesertaId)
+                ->where('mentor_id', Auth::id())
+                ->pluck('bulan_ke')
+                ->toArray();
+                
+            for ($i = 1; $i <= 12; $i++) {
+                if (!in_array($i, $penilaiansAda)) {
+                    $nextBulan = $i;
+                    break;
+                }
+            }
+        }
 
-        return view('mentor.penilaian.create', compact('pesertas', 'durasiMap', 'selectedPesertaId'));
+        return view('mentor.penilaian.create', compact('pesertas', 'durasiMap', 'selectedPesertaId', 'nextBulan'));
     }
 
     public function store(StorePenilaianRequest $request): RedirectResponse
     {
+        $peserta = User::findOrFail($request->peserta_id);
+        
+        // Pastikan peserta terdaftar di setidaknya satu proyek mentor ini
+        if (!$peserta->proyekDiikuti()->where('proyek.user_id', Auth::id())->exists()) {
+            return back()->with('error', 'Peserta tidak terdaftar di proyek Anda.');
+        }
+
         Penilaian::create([
             ...$request->validated(),
             'mentor_id' => Auth::id(),
@@ -87,12 +123,15 @@ class PenilaianController extends Controller
 
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
             ->with(['programPelatihan', 'jenisKelas'])
             ->orderBy('nama_lengkap')
             ->get();
 
         $durasiMap = $pesertas->mapWithKeys(fn($p) => [
-            $p->id => $this->maxBulanFromDurasi($p->durasi_pelatihan),
+            $p->id => $this->maxBulanFromPeserta($p),
         ]);
 
         return view('mentor.penilaian.edit', compact('penilaian', 'pesertas', 'durasiMap'));
@@ -119,12 +158,19 @@ class PenilaianController extends Controller
             ->with('success', 'Penilaian berhasil dihapus.');
     }
 
-    /** Hitung batas bulan dari string durasi_pelatihan */
-    private function maxBulanFromDurasi(?string $durasi): int
+    /** Hitung batas bulan dinamis dari master data durasi berdasarkan kombinasi peserta */
+    private function maxBulanFromPeserta(User $peserta): int
     {
-        if (!$durasi) return 6;
-        if (str_contains($durasi, '1 Bulan')) return 1;
-        if (str_contains($durasi, '3 Bulan')) return 3;
-        return 6; // default 6 bulan (termasuk 6 Bulan & 12 X Pertemuan)
+        if (!$peserta->program_pelatihan_id || !$peserta->jenis_kelas_id || !$peserta->durasi_pelatihan) {
+            return 6; // default fallback
+        }
+
+        $kombinasi = ProgramKelasDurasi::where([
+            'program_pelatihan_id' => $peserta->program_pelatihan_id,
+            'jenis_kelas_id'       => $peserta->jenis_kelas_id,
+            'durasi_pelatihan'     => $peserta->durasi_pelatihan,
+        ])->first();
+
+        return $kombinasi ? $kombinasi->durasi_bulan : 6;
     }
 }

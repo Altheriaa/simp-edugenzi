@@ -26,8 +26,13 @@ class MenuHelper
                         ],
                         [
                             'icon' => 'user-profile',
-                            'name' => 'Manajemen Pengguna',
+                            'name' => 'Manajemen User',
                             'path' => '/admin/pengguna',
+                        ],
+                        [
+                            'icon' => 'user-profile',
+                            'name' => 'Manajemen Peserta Didik',
+                            'path' => '/admin/peserta-didik',
                         ],
                         [
                             'icon' => 'data-master',
@@ -102,6 +107,11 @@ class MenuHelper
                             'icon' => 'dashboard',
                             'name' => 'Dashboard',
                             'path' => '/peserta/dashboard',
+                        ],
+                        [
+                            'icon' => 'forms',
+                            'name' => 'Proyek Saya',
+                            'path' => '/peserta/proyek',
                         ],
                         [
                             'icon' => 'task',

@@ -11,7 +11,7 @@
 
     <x-alert />
 
-    @if ($sertifikats->isEmpty())
+    @if ($sertifikats->isEmpty() && !request('search'))
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 py-16 text-center text-gray-400">
             <svg class="mx-auto h-12 w-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -20,6 +20,16 @@
             <p class="text-sm">Belum ada sertifikat yang diterima.</p>
         </div>
     @else
+        {{-- Search --}}
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+            <x-search-bar :action="route('peserta.sertifikat.index')" placeholder="Cari nomor sertifikat, program, predikat..." />
+        </div>
+
+        @if ($sertifikats->isEmpty())
+            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 py-16 text-center text-gray-400">
+                <p class="text-sm">Tidak ada sertifikat yang cocok dengan pencarian.</p>
+            </div>
+        @else
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($sertifikats as $sertifikat)
                 @php
@@ -72,6 +82,11 @@
                 </div>
             @endforeach
         </div>
+
+        @if ($sertifikats->hasPages())
+            <div>{{ $sertifikats->links() }}</div>
+        @endif
+        @endif
     @endif
 </div>
 @endsection

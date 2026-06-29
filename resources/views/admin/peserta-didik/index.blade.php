@@ -7,10 +7,10 @@
         {{-- Header --}}
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola User (Admin & Mentor)</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Daftar admin dan mentor sistem</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola Pengguna</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Daftar seluruh pengguna sistem</p>
             </div>
-            <a href="{{ route('admin.pengguna.create') }}"
+            <a href="{{ route('admin.peserta-didik.create') }}"
                 class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -25,7 +25,7 @@
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
             {{-- Search Bar --}}
             <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-                <form action="{{ route('admin.pengguna.index') }}" method="GET" class="max-w-md">
+                <form action="{{ route('admin.peserta-didik.index') }}" method="GET" class="max-w-md">
                     <div class="relative">
                         <span class="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-gray-400">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,6 +70,9 @@
                                 Role</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Program / Kelas</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Status</th>
                             <th
                                 class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -102,11 +105,30 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
+                                    @if($pengguna->role === 'peserta_didik' && $pengguna->programPelatihan)
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">
+                                                {{ $pengguna->programPelatihan->nama_program }}
+                                            </span>
+                                            @if($pengguna->jenisKelas)
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $pengguna->jenisKelas->nama }}
+                                                    @if($pengguna->durasi_pelatihan)
+                                                        ({{ $pengguna->durasi_pelatihan }})
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-gray-400 dark:text-gray-500">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
                                     <x-badge-status :status="$pengguna->status" />
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="{{ route('admin.pengguna.edit', $pengguna) }}"
+                                        <a href="{{ route('admin.peserta-didik.edit', $pengguna) }}"
                                             class="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-colors">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -115,7 +137,7 @@
                                             Edit
                                         </a>
                                         <x-modal-confirm :id="'delete-' . $pengguna->id"
-                                            :action="route('admin.pengguna.destroy', $pengguna)">
+                                            :action="route('admin.peserta-didik.destroy', $pengguna)">
                                             <button type="button"
                                                 class="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors">
                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +152,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="px-6 py-10 text-center text-sm text-gray-400">
+                                <td colspan="11" class="px-6 py-10 text-center text-sm text-gray-400">
                                     Belum ada pengguna terdaftar.
                                 </td>
                             </tr>

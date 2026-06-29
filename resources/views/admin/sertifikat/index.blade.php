@@ -13,6 +13,19 @@
     <form method="GET" action="{{ route('admin.sertifikat.index') }}"
           class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex flex-wrap items-end gap-3">
+            <div class="flex-1 min-w-[200px]">
+                <label for="search" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Cari</label>
+                <div class="relative">
+                    <span class="absolute -translate-y-1/2 pointer-events-none left-3 top-1/2 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" name="search" id="search" value="{{ request('search') }}"
+                        placeholder="Cari nama peserta, nomor sertifikat, program..."
+                        class="w-full rounded-lg border border-gray-300 bg-transparent pl-9 pr-3 py-1.5 text-sm text-gray-800 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                </div>
+            </div>
             <div>
                 <label for="peserta_id" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Peserta</label>
                 <select name="peserta_id" id="peserta_id"
@@ -39,7 +52,7 @@
                     class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 Filter
             </button>
-            @if (request()->hasAny(['peserta_id','predikat']))
+            @if (request()->hasAny(['peserta_id','predikat','search']))
                 <a href="{{ route('admin.sertifikat.index') }}"
                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     Reset

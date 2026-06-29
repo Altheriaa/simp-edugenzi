@@ -21,17 +21,26 @@
         </div>
 
         {{-- Update Status --}}
-        <form action="{{ route('peserta.tugas.status', $tugas) }}" method="POST" class="flex items-center gap-2">
-            @csrf @method('PATCH')
-            <select name="status_task" class="h-9 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                <option value="to_do" @selected($tugas->status_task === 'to_do')>To Do</option>
-                <option value="in_progress" @selected($tugas->status_task === 'in_progress')>In Progress</option>
-                <option value="done" @selected($tugas->status_task === 'done')>Done</option>
-            </select>
-            <button type="submit" class="rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
-                Update Status
-            </button>
-        </form>
+        {{-- Update Status --}}
+        @if ($tugas->status_task !== 'done')
+            <form action="{{ route('peserta.tugas.status', $tugas) }}" method="POST" class="flex items-center gap-2">
+                @csrf @method('PATCH')
+                <select name="status_task" class="h-9 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                    <option value="to_do" @selected($tugas->status_task === 'to_do')>To Do</option>
+                    <option value="in_progress" @selected($tugas->status_task === 'in_progress')>In Progress</option>
+                    <option value="done" @selected($tugas->status_task === 'done')>Done</option>
+                </select>
+                <button type="submit" class="rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                    Update Status
+                </button>
+            </form>
+        @else
+            <div class="flex items-center gap-2">
+                <span class="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-400">
+                    Tugas Selesai
+                </span>
+            </div>
+        @endif
     </div>
 
     <x-alert />
@@ -62,20 +71,31 @@
                 @else
                     <div class="divide-y divide-gray-100 dark:divide-gray-800">
                         @foreach ($tugas->subTugas as $sub)
-                            <form action="{{ route('peserta.sub-tugas.toggle', $sub) }}" method="POST"
-                                  class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-                                  onsubmit="this.submit()">
-                                @csrf @method('PATCH')
-                                <button type="submit" class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all
-                                    {{ $sub->is_selesai ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-green-400 dark:border-gray-600' }}">
-                                    @if($sub->is_selesai)
+                            @if ($tugas->status_task === 'done')
+                                <div class="flex items-center gap-3 px-5 py-3 opacity-75">
+                                    <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-green-500 bg-green-500">
                                         <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                    @endif
-                                </button>
-                                <span class="text-sm {{ $sub->is_selesai ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200' }}">
-                                    {{ $sub->judul_sub_task }}
-                                </span>
-                            </form>
+                                    </div>
+                                    <span class="text-sm line-through text-gray-400">
+                                        {{ $sub->judul_sub_task }}
+                                    </span>
+                                </div>
+                            @else
+                                <form action="{{ route('peserta.sub-tugas.toggle', $sub) }}" method="POST"
+                                      class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                                      onsubmit="this.submit()">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all
+                                        {{ $sub->is_selesai ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-green-400 dark:border-gray-600' }}">
+                                        @if($sub->is_selesai)
+                                            <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                        @endif
+                                    </button>
+                                    <span class="text-sm {{ $sub->is_selesai ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200' }}">
+                                        {{ $sub->judul_sub_task }}
+                                    </span>
+                                </form>
+                            @endif
                         @endforeach
                     </div>
                 @endif
@@ -88,17 +108,19 @@
                 </div>
 
                 {{-- Form Upload --}}
-                <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-                    <form action="{{ route('peserta.lampiran.store', $tugas) }}" method="POST" enctype="multipart/form-data" class="flex gap-2">
-                        @csrf
-                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.zip"
-                            class="flex-1 text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-blue-600 hover:file:bg-blue-100 dark:file:bg-blue-900/20 dark:file:text-blue-400" />
-                        <button type="submit" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors flex-shrink-0">
-                            Upload
-                        </button>
-                    </form>
-                    @error('file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                </div>
+                @if ($tugas->status_task !== 'done')
+                    <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                        @error('file') <p class="mb-2 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
+                        <form action="{{ route('peserta.lampiran.store', $tugas) }}" method="POST" enctype="multipart/form-data" class="flex gap-2">
+                            @csrf
+                            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.zip"
+                                class="flex-1 text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-blue-600 hover:file:bg-blue-100 dark:file:bg-blue-900/20 dark:file:text-blue-400" />
+                            <button type="submit" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors flex-shrink-0">
+                                Upload
+                            </button>
+                        </form>
+                    </div>
+                @endif
 
                 @if ($tugas->lampiran->isEmpty())
                     <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada lampiran.</div>
@@ -113,7 +135,7 @@
                                 <div class="flex items-center gap-2">
                                     <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"
                                        class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">Download</a>
-                                    @if ($lamp->uploaded_by === Auth::id())
+                                    @if ($lamp->uploaded_by === Auth::id() && $tugas->status_task !== 'done')
                                         <form action="{{ route('peserta.lampiran.destroy', $lamp) }}" method="POST">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="text-xs text-red-500 hover:text-red-600 font-medium">Hapus</button>

@@ -42,7 +42,7 @@
                         @foreach ($pesertas as $peserta)
                             <option value="{{ $peserta->id }}" class="dark:bg-gray-900"
                                 {{ (old('peserta_id', $sertifikat->peserta_id) == $peserta->id) ? 'selected' : '' }}>
-                                {{ $peserta->nama_lengkap }}
+                                {{ $peserta->no_registrasi }} - {{ $peserta->nama_lengkap }}
                             </option>
                         @endforeach
                     </select>
@@ -73,15 +73,22 @@
 
                 {{-- Nama Program --}}
                 <div class="sm:col-span-2">
-                    <label for="nama_program" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Nama Program <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" name="nama_program" id="nama_program" required
-                           value="{{ old('nama_program', $sertifikat->nama_program) }}"
-                           class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('nama_program') border-red-400 @enderror">
-                    @error('nama_program')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <div class="rounded-lg bg-blue-50 p-4 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">Informasi Program Pelatihan</h3>
+                                <div class="mt-1 text-sm text-blue-700 dark:text-blue-400">
+                                    Nama program pelatihan saat ini: <strong>{{ $sertifikat->nama_program }}</strong>.<br>
+                                    Jika Anda mengubah peserta didik, nama program akan diperbarui secara otomatis.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Tanggal Terbit --}}

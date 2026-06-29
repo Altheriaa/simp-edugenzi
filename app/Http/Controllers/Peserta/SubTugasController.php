@@ -15,13 +15,18 @@ class SubTugasController extends Controller
      */
     public function toggle(SubTugas $subTugas): RedirectResponse
     {
-        // Pastikan tugas induk milik peserta ini
         abort_if($subTugas->tugas->user_id !== Auth::id(), 403, 'Akses ditolak.');
+        
+        if ($subTugas->tugas->proyek->status_proyek === 'selesai') {
+            return back()->with('error', 'Proyek sudah selesai, Anda tidak dapat mengubah data.');
+        }
 
-        $subTugas->update([
-            'is_selesai' => !$subTugas->is_selesai,
-        ]);
+        if ($subTugas->tugas->status_task === 'done') {
+            return back()->with('error', 'Tugas utama sudah selesai, Anda tidak dapat mengubah sub-tugas.');
+        }
 
-        return back()->with('success', 'Status sub-tugas diperbarui.');
+        $subTugas->update(['is_selesai' => !$subTugas->is_selesai]);
+
+        return back()->with('success', 'Status sub-tugas berhasil diperbarui.');
     }
 }

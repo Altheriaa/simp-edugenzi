@@ -22,6 +22,11 @@
 
         <x-alert />
 
+        {{-- Search --}}
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+            <x-search-bar :action="route('mentor.penilaian.index')" placeholder="Cari nama peserta..." />
+        </div>
+
         {{-- Grid Kartu Peserta --}}
         @if ($pesertas->isEmpty())
             <div

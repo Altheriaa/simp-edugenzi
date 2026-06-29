@@ -15,12 +15,20 @@ class LampiranController extends Controller
     public function store(Request $request, Tugas $tugas): RedirectResponse
     {
         abort_if($tugas->user_id !== Auth::id(), 403, 'Akses ditolak.');
+        
+        if ($tugas->proyek->status_proyek === 'selesai') {
+            return back()->withErrors(['file' => 'Proyek sudah selesai, Anda tidak dapat mengunggah lampiran.']);
+        }
+
+        if ($tugas->status_task === 'done') {
+            return back()->with('error', 'Tugas yang sudah selesai tidak dapat ditambahkan lampiran.');
+        }
 
         $request->validate([
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,zip'],
+            'file' => ['required', 'file', 'max:2048', 'mimes:pdf,jpg,jpeg,png,zip'],
         ], [
             'file.required' => 'File wajib dipilih.',
-            'file.max'      => 'Ukuran file maksimal 10MB.',
+            'file.max'      => 'Ukuran file maksimal 2MB.',
             'file.mimes'    => 'Tipe file harus: pdf, jpg, jpeg, png, atau zip.',
         ]);
 
@@ -43,7 +51,15 @@ class LampiranController extends Controller
 
     public function destroy(Lampiran $lampiran): RedirectResponse
     {
-        abort_if($lampiran->uploaded_by !== Auth::id(), 403, 'Akses ditolak.');
+        abort_if($lampiran->tugas->user_id !== Auth::id(), 403, 'Akses ditolak.');
+        
+        if ($lampiran->tugas->proyek->status_proyek === 'selesai') {
+            return back()->with('error', 'Proyek sudah selesai, Anda tidak dapat menghapus lampiran.');
+        }
+
+        if ($lampiran->tugas->status_task === 'done') {
+            return back()->with('error', 'Lampiran dari tugas yang sudah selesai tidak dapat dihapus.');
+        }
 
         Storage::disk('public')->delete($lampiran->path_file);
         $lampiran->delete();

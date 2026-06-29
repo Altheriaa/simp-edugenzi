@@ -20,7 +20,29 @@ class StoreProyekRequest extends FormRequest
             'tgl_mulai'     => ['required', 'date'],
             'tgl_selesai'   => ['required', 'date', 'after_or_equal:tgl_mulai'],
             'status_proyek' => ['required', 'in:berjalan,selesai,tertunda'],
-            'program_pelatihan_id' => ['nullable', 'exists:program_pelatihans,id'],
+            'program_pelatihan_id' => [
+                'nullable', 
+                'exists:program_pelatihans,id',
+                function ($attribute, $value, $fail) {
+                    $jenisKelasId = request('jenis_kelas_id');
+                    $durasi = request('durasi_pelatihan');
+                    if ($value && $jenisKelasId && $durasi) {
+                        $existing = \App\Models\Proyek::where('program_pelatihan_id', $value)
+                            ->where('jenis_kelas_id', $jenisKelasId)
+                            ->where('durasi_pelatihan', $durasi)
+                            ->with('mentor')
+                            ->first();
+
+                        if ($existing) {
+                            if ($existing->user_id === \Illuminate\Support\Facades\Auth::id()) {
+                                $fail('Anda sudah membuat proyek dengan kombinasi Program, Kelas, dan Durasi ini (Proyek: ' . $existing->nama_proyek . ').');
+                            } else {
+                                $fail('Kombinasi Program dan Kelas ini sudah dipegang oleh Mentor lain (' . $existing->mentor->nama_lengkap . ').');
+                            }
+                        }
+                    }
+                }
+            ],
             'jenis_kelas_id'       => ['nullable', 'exists:jenis_kelas,id'],
             'durasi_pelatihan'     => ['nullable', 'string', 'max:50'],
         ];

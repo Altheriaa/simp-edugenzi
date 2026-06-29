@@ -79,6 +79,12 @@ class User extends Authenticatable
         return $this->hasMany(Proyek::class, 'user_id');
     }
 
+    /** Proyek yang diikuti oleh peserta ini */
+    public function proyekDiikuti(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Proyek::class, 'proyek_user', 'user_id', 'proyek_id')->withTimestamps();
+    }
+
     /** Tugas yang diberikan ke peserta ini */
     public function tugas(): HasMany
     {

@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('pengguna', Admin\PenggunaController::class)->except(['show']);
+    Route::resource('peserta-didik', Admin\PesertaController::class)->except(['show']);
     Route::resource('program-pelatihan', Admin\ProgramPelatihanController::class)->except(['show']);
     Route::post('program-pelatihan/{program}/durasi', [Admin\ProgramPelatihanController::class, 'addDurasi'])->name('program-pelatihan.add-durasi');
     Route::delete('program-kelas-durasi/{id}', [Admin\ProgramPelatihanController::class, 'removeDurasi'])->name('program-kelas-durasi.destroy');
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
 // --- Peserta Didik ---
 Route::middleware(['auth', 'role:peserta_didik'])->prefix('peserta')->name('peserta.')->group(function () {
     Route::get('/dashboard', [Peserta\DashboardController::class, 'index'])->name('dashboard');
+    // Proyek
+    Route::get('proyek', [Peserta\ProyekController::class, 'index'])->name('proyek.index');
+    Route::get('proyek/{proyek}', [Peserta\ProyekController::class, 'show'])->name('proyek.show');
 
     // Tugas
     Route::get('tugas', [Peserta\TugasController::class, 'index'])->name('tugas.index');

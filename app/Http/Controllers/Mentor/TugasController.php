@@ -46,6 +46,9 @@ class TugasController extends Controller
 
         $proyek->tugas()->create($request->validated());
 
+        // Daftarkan peserta ke proyek secara otomatis
+        $proyek->peserta()->syncWithoutDetaching([$request->user_id]);
+
         return redirect()->route('mentor.proyek.show', $proyek)
             ->with('success', 'Tugas berhasil ditambahkan.');
     }
@@ -90,7 +93,26 @@ class TugasController extends Controller
     {
         Gate::authorize('update', $tugas->proyek);
 
+        $oldUserId = $tugas->user_id;
+
         $tugas->update($request->validated());
+
+        // Pastikan peserta yang baru diassign tugas ini terdaftar di proyek
+        $tugas->proyek->peserta()->syncWithoutDetaching([$request->user_id]);
+
+        // Jika assignee berubah, cek apakah user lama masih punya tugas di proyek ini
+        if ($oldUserId != $request->user_id) {
+            $hasOtherTasks = $tugas->proyek->tugas()->where('user_id', $oldUserId)->exists();
+            if (!$hasOtherTasks) {
+                // Keluarkan dari proyek karena sudah tidak ada tugas
+                $tugas->proyek->peserta()->detach($oldUserId);
+            }
+        }
+
+        // Jika mentor mengubah tugas kembali menjadi belum selesai, otomatis kembalikan proyek menjadi berjalan
+        if (in_array($request->status_task, ['to_do', 'in_progress']) && $tugas->proyek->status_proyek === 'selesai') {
+            $tugas->proyek->update(['status_proyek' => 'berjalan']);
+        }
 
         return redirect()->route('mentor.proyek.show', $tugas->proyek_id)
             ->with('success', 'Tugas berhasil diperbarui.');
@@ -99,8 +121,17 @@ class TugasController extends Controller
     public function destroy(Tugas $tugas): RedirectResponse
     {
         $proyekId = $tugas->proyek_id;
-        Gate::authorize('delete', $tugas->proyek);
+        $userId = $tugas->user_id;
+        $proyek = $tugas->proyek;
+
+        Gate::authorize('delete', $proyek);
         $tugas->delete();
+
+        // Cek apakah user masih punya tugas lain di proyek ini
+        $hasOtherTasks = $proyek->tugas()->where('user_id', $userId)->exists();
+        if (!$hasOtherTasks) {
+            $proyek->peserta()->detach($userId);
+        }
 
         return redirect()->route('mentor.proyek.show', $proyekId)
             ->with('success', 'Tugas berhasil dihapus.');

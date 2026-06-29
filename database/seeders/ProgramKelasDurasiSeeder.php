@@ -51,10 +51,17 @@ class ProgramKelasDurasiSeeder extends Seeder
                 if (!$kelas) continue;
 
                 foreach ($durasiList as $durasi) {
+                    $durasiBulan = 1;
+                    if (str_contains($durasi, 'Bulan')) {
+                        $durasiBulan = (int) filter_var($durasi, FILTER_SANITIZE_NUMBER_INT);
+                    }
+
                     ProgramKelasDurasi::firstOrCreate([
                         'program_pelatihan_id' => $program->id,
                         'jenis_kelas_id'       => $kelas->id,
                         'durasi_pelatihan'     => $durasi,
+                    ], [
+                        'durasi_bulan'         => $durasiBulan,
                     ]);
                 }
             }

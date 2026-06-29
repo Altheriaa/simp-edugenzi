@@ -16,5 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Ukuran file terlalu besar melebihi batas server.'], 413);
+            }
+            return back()->withErrors(['file' => 'Gagal mengunggah: Ukuran file terlalu besar melebihi batas maksimal server.']);
+        });
     })->create();

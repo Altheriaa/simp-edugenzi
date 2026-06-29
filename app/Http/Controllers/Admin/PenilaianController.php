@@ -14,6 +14,15 @@ class PenilaianController extends Controller
     {
         $query = Penilaian::with(['peserta.programPelatihan', 'peserta.jenisKelas', 'mentor'])->latest();
 
+        // Search berdasarkan nama peserta atau mentor
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"))
+                  ->orWhereHas('mentor', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"));
+            });
+        }
+
         // Filter berdasarkan peserta (opsional)
         if ($request->filled('peserta_id')) {
             $query->where('peserta_id', $request->peserta_id);

@@ -15,15 +15,37 @@ class EvaluasiController extends Controller
 {
     public function index(): View
     {
+        $search = request('search');
+
         $evaluasis = Evaluasi::with(['proyek', 'peserta'])
             ->where('mentor_id', Auth::id())
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('catatan', 'like', "%{$search}%")
+                      ->orWhereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"))
+                      ->orWhereHas('proyek', fn($sub) => $sub->where('nama_proyek', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        $proyeks = Proyek::where('user_id', Auth::id())->get();
-        $pesertas = User::where('role', 'peserta_didik')->where('status', 'aktif')->get();
+        $proyeks = Proyek::with(['peserta' => function ($q) {
+            $q->where('status', 'aktif')->orderBy('nama_lengkap');
+        }])->where('user_id', Auth::id())->get();
 
-        return view('mentor.evaluasi.index', compact('evaluasis', 'proyeks', 'pesertas'));
+        $pesertaMap = [];
+        foreach ($proyeks as $proyek) {
+            $pesertaMap[$proyek->id] = $proyek->peserta->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'nama_lengkap' => $p->no_registrasi . ' - ' . $p->nama_lengkap
+                ];
+            })->toArray();
+        }
+        $pesertaMapJson = json_encode($pesertaMap);
+
+        return view('mentor.evaluasi.index', compact('evaluasis', 'proyeks', 'pesertaMapJson'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -38,6 +60,11 @@ class EvaluasiController extends Controller
         $proyek = Proyek::where('id', $request->proyek_id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
+
+        // Pastikan peserta terdaftar di proyek ini
+        if (!$proyek->peserta()->where('users.id', $request->peserta_id)->exists()) {
+            return back()->with('error', 'Peserta tidak terdaftar di proyek ini.');
+        }
 
         Evaluasi::create([
             'proyek_id'  => $proyek->id,

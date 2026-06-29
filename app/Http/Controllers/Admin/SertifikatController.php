@@ -15,6 +15,16 @@ class SertifikatController extends Controller
         $query = Sertifikat::with(['peserta', 'mentor'])
             ->latest('tgl_terbit');
 
+        // Search berdasarkan nama peserta, nomor sertifikat, nama program
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nomor_sertifikat', 'like', "%{$search}%")
+                  ->orWhere('nama_program', 'like', "%{$search}%")
+                  ->orWhereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"));
+            });
+        }
+
         // Filter berdasarkan peserta (opsional)
         if ($request->filled('peserta_id')) {
             $query->where('peserta_id', $request->peserta_id);

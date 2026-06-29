@@ -1,24 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Pengguna')
+@section('title', 'Tambah Peserta Didik')
 
 @section('content')
 <div class="max-w-2xl space-y-6">
     {{-- Header --}}
     <div class="flex items-center gap-3">
-        <a href="{{ route('admin.pengguna.index') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+        <a href="{{ route('admin.peserta-didik.index') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tambah Pengguna</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Isi form berikut untuk menambah pengguna baru</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tambah Peserta Didik</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Isi form berikut untuk menambah peserta didik baru</p>
         </div>
     </div>
 
     {{-- Form --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
          x-data='{
-            role: "{{ old('role') }}",
             programId: "{{ old('program_pelatihan_id') }}",
             kelasId:   "{{ old('jenis_kelas_id') }}",
             durasi:    "{{ old('durasi_pelatihan') }}",
@@ -39,7 +38,7 @@
                 if (d.length === 1) this.durasi = d[0];
             }
          }'>
-        <form action="{{ route('admin.pengguna.store') }}" method="POST">
+        <form action="{{ route('admin.peserta-didik.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {{-- Nama Lengkap --}}
@@ -118,19 +117,7 @@
                         placeholder="Ulangi password" />
                 </div>
 
-                {{-- Role --}}
-                <div>
-                    <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Role <span class="text-red-500">*</span>
-                    </label>
-                    <select id="role" name="role" x-model="role"
-                        class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('role') border-red-400 @enderror">
-                        <option value="">-- Pilih Role --</option>
-                        <option value="admin" @selected(old('role') === 'admin')>Admin</option>
-                        <option value="mentor" @selected(old('role') === 'mentor')>Mentor</option>
-                    </select>
-                    @error('role') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                </div>
+                <input type="hidden" name="role" value="peserta_didik">
 
                 {{-- Status --}}
                 <div>
@@ -144,20 +131,65 @@
                     </select>
                 </div>
 
-
+                {{-- Bidang Pelatihan --}}
+                <div class="sm:col-span-2 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Informasi Pelatihan</p>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        {{-- Program Pelatihan --}}
+                        <div>
+                            <label for="program_pelatihan_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Program Pelatihan</label>
+                            <select id="program_pelatihan_id" name="program_pelatihan_id"
+                                x-model="programId" @change="onProgramChange()"
+                                class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                <option value="">-- Pilih Program --</option>
+                                @foreach($programs as $prog)
+                                    <option value="{{ $prog->id }}" @selected(old('program_pelatihan_id') == $prog->id)>
+                                        {{ $prog->nama_program }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- Jenis Kelas --}}
+                        <div>
+                            <label for="jenis_kelas_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Jenis Kelas</label>
+                            <select id="jenis_kelas_id" name="jenis_kelas_id"
+                                x-model="kelasId" @change="onKelasChange()"
+                                :disabled="!programId"
+                                class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                <option value="">-- Pilih Kelas --</option>
+                                <template x-for="k in availableKelas" :key="k">
+                                    <option :value="k" :selected="kelasId == k" x-text="allKelas[k]"></option>
+                                </template>
+                            </select>
+                        </div>
+                        {{-- Durasi Pelatihan --}}
+                        <div>
+                            <label for="durasi_pelatihan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Durasi / Periode</label>
+                            <select id="durasi_pelatihan" name="durasi_pelatihan"
+                                x-model="durasi"
+                                :disabled="!kelasId"
+                                class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                <option value="">-- Pilih Durasi --</option>
+                                <template x-for="d in availableDurasi" :key="d">
+                                    <option :value="d" :selected="d === durasi" x-text="d"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
 
             </div>
 
             {{-- Actions --}}
             <div class="mt-6 flex items-center justify-end gap-3">
-                <a href="{{ route('admin.pengguna.index') }}"
+                <a href="{{ route('admin.peserta-didik.index') }}"
                    class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors">
                     Batal
                 </a>
                 <button type="submit"
                     class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                    Simpan Pengguna
+                    Simpan Peserta Didik
                 </button>
             </div>
         </form>

@@ -23,6 +23,7 @@
 
         {{-- Table --}}
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+            <x-search-bar :action="route('admin.program-pelatihan.index')" placeholder="Cari nama program pelatihan..." />
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                     <thead class="bg-gray-50 dark:bg-gray-800/50">
@@ -39,12 +40,20 @@
                         @forelse ($programs as $program)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $loop->iteration }}
+                                    {{ $loop->iteration + ($programs->currentPage() - 1) * $programs->perPage() }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $program->nama_program }}
                                     </p>
+                                    @php
+                                        $mentors = $program->proyek->map(fn($p) => $p->mentor->nama_lengkap)->unique()->join(', ');
+                                    @endphp
+                                    @if($mentors)
+                                        <p class="mt-1 text-xs text-brand-600 dark:text-brand-400">
+                                            Dipegang oleh: <span class="font-semibold">{{ $mentors }}</span>
+                                        </p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     @if ($program->is_aktif)
@@ -97,6 +106,11 @@
                     </tbody>
                 </table>
             </div>
+            @if ($programs->hasPages())
+                <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+                    {{ $programs->links() }}
+                </div>
+            @endif
         </div>
     </div>
 @endsection

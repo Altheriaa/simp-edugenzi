@@ -20,6 +20,11 @@
 
     <x-alert />
 
+    {{-- Search --}}
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+        <x-search-bar :action="route('mentor.sertifikat.index')" placeholder="Cari nama peserta, nomor sertifikat, program..." />
+    </div>
+
     {{-- Grid Sertifikat --}}
     @if ($sertifikats->isEmpty())
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 py-16 text-center text-gray-400">

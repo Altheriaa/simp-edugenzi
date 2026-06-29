@@ -19,17 +19,25 @@ class StorePenilaianRequest extends FormRequest
         $maxBulan = 6;
         if ($this->filled('peserta_id')) {
             $peserta = User::find($this->peserta_id);
-            $durasi  = $peserta?->durasi_pelatihan ?? '';
-            if (str_contains($durasi, '1 Bulan')) {
-                $maxBulan = 1;
-            } elseif (str_contains($durasi, '3 Bulan')) {
-                $maxBulan = 3;
+            if ($peserta) {
+                $kombinasi = \App\Models\ProgramKelasDurasi::where([
+                    'program_pelatihan_id' => $peserta->program_pelatihan_id,
+                    'jenis_kelas_id'       => $peserta->jenis_kelas_id,
+                    'durasi_pelatihan'     => $peserta->durasi_pelatihan,
+                ])->first();
+                $maxBulan = $kombinasi ? $kombinasi->durasi_bulan : 6;
             }
         }
 
         return [
             'peserta_id' => ['required', 'exists:users,id'],
-            'bulan_ke'   => ['required', 'integer', 'min:1', "max:{$maxBulan}"],
+            'bulan_ke'   => [
+                'required', 
+                'integer', 
+                'min:1', 
+                "max:{$maxBulan}",
+                \Illuminate\Validation\Rule::unique('penilaian')->where(fn ($query) => $query->where('peserta_id', $this->peserta_id))
+            ],
             'm1_kls'     => ['required', 'integer', 'min:2', 'max:5'],
             'm1_pr'      => ['required', 'integer', 'min:2', 'max:5'],
             'm2_kls'     => ['required', 'integer', 'min:2', 'max:5'],
@@ -50,6 +58,7 @@ class StorePenilaianRequest extends FormRequest
             'bulan_ke.required'   => 'Bulan pelatihan wajib dipilih.',
             'bulan_ke.min'        => 'Bulan pelatihan minimal Bulan Ke-1.',
             'bulan_ke.max'        => 'Bulan pelatihan melebihi durasi pelatihan peserta.',
+            'bulan_ke.unique'     => 'Penilaian untuk bulan ini sudah ada.',
             '*.min'               => 'Nilai bintang minimal 2.',
             '*.max'               => 'Nilai bintang maksimal 5.',
         ];

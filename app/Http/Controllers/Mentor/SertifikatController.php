@@ -15,13 +15,27 @@ class SertifikatController extends Controller
 {
     public function index(): View
     {
+        $search = request('search');
+
         $sertifikats = Sertifikat::with('peserta')
             ->where('mentor_id', Auth::id())
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nomor_sertifikat', 'like', "%{$search}%")
+                      ->orWhere('nama_program', 'like', "%{$search}%")
+                      ->orWhere('predikat', 'like', "%{$search}%")
+                      ->orWhereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
             ->orderBy('nama_lengkap')
             ->get();
 
@@ -34,6 +48,9 @@ class SertifikatController extends Controller
     {
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
             ->orderBy('nama_lengkap')
             ->get();
 
@@ -44,13 +61,28 @@ class SertifikatController extends Controller
 
     public function store(StoreSertifikatRequest $request): RedirectResponse
     {
+        $peserta = User::with('programPelatihan')->findOrFail($request->peserta_id);
+        
+        if (!$peserta->proyekDiikuti()->where('proyek.user_id', Auth::id())->exists()) {
+            return back()->with('error', 'Peserta tidak terdaftar di proyek Anda.');
+        }
+
         // Generate nomor sertifikat otomatis: EDG/YYYY/XXXX
         $tahun  = date('Y', strtotime($request->tgl_terbit));
-        $urutan = Sertifikat::whereYear('tgl_terbit', $tahun)->count() + 1;
+        $lastSertifikat = Sertifikat::whereYear('tgl_terbit', $tahun)->orderBy('id', 'desc')->first();
+        if ($lastSertifikat) {
+            $parts = explode('/', $lastSertifikat->nomor_sertifikat);
+            $urutan = intval(end($parts)) + 1;
+        } else {
+            $urutan = 1;
+        }
         $nomor  = 'EDG/' . $tahun . '/' . str_pad($urutan, 4, '0', STR_PAD_LEFT);
+
+        $namaProgram = $peserta->programPelatihan ? $peserta->programPelatihan->nama_program : '-';
 
         Sertifikat::create([
             ...$request->validated(),
+            'nama_program'     => $namaProgram,
             'mentor_id'        => Auth::id(),
             'nomor_sertifikat' => $nomor,
         ]);
@@ -73,6 +105,9 @@ class SertifikatController extends Controller
 
         $pesertas = User::where('role', 'peserta_didik')
             ->where('status', 'aktif')
+            ->whereHas('proyekDiikuti', function ($query) {
+                $query->where('proyek.user_id', Auth::id());
+            })
             ->orderBy('nama_lengkap')
             ->get();
 
@@ -84,7 +119,14 @@ class SertifikatController extends Controller
     public function update(UpdateSertifikatRequest $request, Sertifikat $sertifikat): RedirectResponse
     {
         $this->authorize('update', $sertifikat);
-        $sertifikat->update($request->validated());
+
+        $peserta = User::with('programPelatihan')->findOrFail($request->peserta_id);
+        $namaProgram = $peserta->programPelatihan ? $peserta->programPelatihan->nama_program : '-';
+
+        $sertifikat->update([
+            ...$request->validated(),
+            'nama_program' => $namaProgram,
+        ]);
 
         return redirect()->route('mentor.sertifikat.index')
             ->with('success', 'Sertifikat berhasil diperbarui.');

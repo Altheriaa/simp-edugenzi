@@ -12,14 +12,14 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
-class PenggunaController extends Controller
+class PesertaController extends Controller
 {
     public function index(): View
     {
         $search = request('search');
 
         $penggunas = User::query()
-            ->whereIn('role', ['admin', 'mentor'])
+            ->where('role', 'peserta_didik')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama_lengkap', 'like', "%{$search}%")
@@ -36,7 +36,7 @@ class PenggunaController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.pengguna.index', compact('penggunas'));
+        return view('admin.peserta-didik.index', compact('penggunas'));
     }
 
     public function create(): View
@@ -45,18 +45,21 @@ class PenggunaController extends Controller
         $jenisKelas  = JenisKelas::aktif()->get();
         $optionsJson = $this->buildOptionsJson();
 
-        return view('admin.pengguna.create', compact('programs', 'jenisKelas', 'optionsJson'));
+        return view('admin.peserta-didik.create', compact('programs', 'jenisKelas', 'optionsJson'));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
-        // Admin and Mentor do not need no_registrasi like peserta didiks
+        $data['role'] = 'peserta_didik';
+        $nextId = (User::max('id') ?? 0) + 1;
+        $data['no_registrasi'] = 'EDU-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
         User::create($data);
 
-        return redirect()->route('admin.pengguna.index')
-            ->with('success', 'Pengguna berhasil ditambahkan.');
+        return redirect()->route('admin.peserta-didik.index')
+            ->with('success', 'Peserta Didik berhasil ditambahkan.');
     }
 
     public function edit(User $pengguna): View
@@ -65,23 +68,25 @@ class PenggunaController extends Controller
         $jenisKelas  = JenisKelas::aktif()->get();
         $optionsJson = $this->buildOptionsJson();
 
-        return view('admin.pengguna.edit', compact('pengguna', 'programs', 'jenisKelas', 'optionsJson'));
+        return view('admin.peserta-didik.edit', compact('pengguna', 'programs', 'jenisKelas', 'optionsJson'));
     }
 
     public function update(UpdateUserRequest $request, User $pengguna): RedirectResponse
     {
-        $pengguna->update($request->validated());
+        $data = $request->validated();
+        $data['role'] = 'peserta_didik'; // just in case
+        $pengguna->update($data);
 
-        return redirect()->route('admin.pengguna.index')
-            ->with('success', 'Data pengguna berhasil diperbarui.');
+        return redirect()->route('admin.peserta-didik.index')
+            ->with('success', 'Data Peserta Didik berhasil diperbarui.');
     }
 
     public function destroy(User $pengguna): RedirectResponse
     {
         $pengguna->delete();
 
-        return redirect()->route('admin.pengguna.index')
-            ->with('success', 'Pengguna berhasil dihapus.');
+        return redirect()->route('admin.peserta-didik.index')
+            ->with('success', 'Peserta Didik berhasil dihapus.');
     }
 
     /**

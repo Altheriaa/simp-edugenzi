@@ -26,7 +26,7 @@
                     <select id="user_id" name="user_id"
                         class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                         @foreach ($pesertaList as $peserta)
-                            <option value="{{ $peserta->id }}" @selected(old('user_id', $tugas->user_id) == $peserta->id)>{{ $peserta->nama_lengkap }}</option>
+                            <option value="{{ $peserta->id }}" @selected(old('user_id', $tugas->user_id) == $peserta->id)>{{ $peserta->no_registrasi }} - {{ $peserta->nama_lengkap }}</option>
                         @endforeach
                     </select>
                 </div>

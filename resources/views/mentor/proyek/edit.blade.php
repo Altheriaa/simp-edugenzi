@@ -93,7 +93,7 @@
                             <label for="program_pelatihan_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Program Pelatihan</label>
                             <select id="program_pelatihan_id" name="program_pelatihan_id"
                                 x-model="programId" @change="onProgramChange()"
-                                class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('program_pelatihan_id') border-red-400 @enderror">
                                 <option value="">-- Opsional --</option>
                                 @foreach($programs as $prog)
                                     <option value="{{ $prog->id }}" @selected(old('program_pelatihan_id', $proyek->program_pelatihan_id) == $prog->id)>
@@ -101,6 +101,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('program_pelatihan_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         {{-- Jenis Kelas --}}
                         <div>

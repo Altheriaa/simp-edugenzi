@@ -30,6 +30,11 @@ class ProgramPelatihan extends Model
         return $this->hasMany(User::class, 'program_pelatihan_id');
     }
 
+    public function proyek(): HasMany
+    {
+        return $this->hasMany(Proyek::class, 'program_pelatihan_id');
+    }
+
     /** Scope: hanya program yang aktif */
     public function scopeAktif($query)
     {
