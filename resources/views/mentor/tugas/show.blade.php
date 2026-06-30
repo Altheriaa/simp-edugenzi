@@ -83,26 +83,83 @@
                 @endif
             </div>
 
-            {{-- Lampiran --}}
-            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+            @php
+                $panduanMentor = $tugas->lampiran->where('uploaded_by', $tugas->proyek->user_id);
+                $lampiranPeserta = $tugas->lampiran->where('uploaded_by', $tugas->user_id);
+            @endphp
+
+            {{-- Panduan / Modul (Mentor) --}}
+            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden mb-6">
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Lampiran</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Panduan / Modul (PDF)</h3>
                 </div>
-                @if ($tugas->lampiran->isEmpty())
-                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada lampiran.</div>
+
+                {{-- Form tambah panduan --}}
+                <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+                    <form action="{{ route('mentor.lampiran.store', $tugas) }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+                        @csrf
+                        <input type="file" name="file" accept=".pdf" required
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-800 dark:file:text-gray-300" />
+                        <button type="submit" class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                            Upload
+                        </button>
+                    </form>
+                </div>
+
+                @if ($panduanMentor->isEmpty())
+                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada panduan.</div>
                 @else
                     <div class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @foreach ($tugas->lampiran as $lamp)
+                        @foreach ($panduanMentor as $lamp)
                             <div class="flex items-center gap-3 px-5 py-3">
                                 <svg class="h-8 w-8 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $lamp->nama_file }}</p>
-                                    <p class="text-xs text-gray-400">{{ $lamp->tipe_file }} · {{ $lamp->ukuran_file }} KB · {{ $lamp->uploader->nama_lengkap }}</p>
+                                    <p class="text-xs text-gray-400">{{ strtoupper($lamp->tipe_file) }} · {{ $lamp->ukuran_file }} KB · {{ $lamp->uploader->nama_lengkap }}</p>
                                 </div>
-                                <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"
-                                   class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                                    Download
-                                </a>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"
+                                       class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                        Download
+                                    </a>
+                                    @if($lamp->uploaded_by === auth()->id())
+                                        <form action="{{ route('mentor.lampiran.destroy', $lamp) }}" method="POST" class="inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            {{-- Lampiran Tugas (Peserta) --}}
+            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Lampiran / Hasil Tugas (Peserta)</h3>
+                </div>
+                
+                @if ($lampiranPeserta->isEmpty())
+                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada lampiran tugas dari peserta.</div>
+                @else
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach ($lampiranPeserta as $lamp)
+                            <div class="flex items-center gap-3 px-5 py-3">
+                                <svg class="h-8 w-8 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $lamp->nama_file }}</p>
+                                    <p class="text-xs text-gray-400">{{ strtoupper($lamp->tipe_file) }} · {{ $lamp->ukuran_file }} KB · {{ $lamp->uploader->nama_lengkap }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"
+                                       class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                        Download
+                                    </a>
+                                </div>
                             </div>
                         @endforeach
                     </div>

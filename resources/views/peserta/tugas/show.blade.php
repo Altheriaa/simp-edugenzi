@@ -101,10 +101,41 @@
                 @endif
             </div>
 
-            {{-- Upload Lampiran --}}
+            @php
+                $panduanMentor = $tugas->lampiran->where('uploaded_by', $tugas->proyek->user_id);
+                $lampiranPeserta = $tugas->lampiran->where('uploaded_by', $tugas->user_id);
+            @endphp
+
+            {{-- Panduan / Modul (Mentor) --}}
+            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden mb-6">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Panduan / Modul (PDF)</h3>
+                </div>
+
+                @if ($panduanMentor->isEmpty())
+                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada panduan.</div>
+                @else
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach ($panduanMentor as $lamp)
+                            <div class="flex items-center gap-3 px-5 py-3">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $lamp->nama_file }}</p>
+                                    <p class="text-xs text-gray-400">{{ strtoupper($lamp->tipe_file) }} · {{ $lamp->ukuran_file }} KB · {{ $lamp->uploader->nama_lengkap }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"
+                                       class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">Download</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            {{-- Upload Lampiran Tugas (Peserta) --}}
             <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Lampiran</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Lampiran / Hasil Tugas</h3>
                 </div>
 
                 {{-- Form Upload --}}
@@ -122,15 +153,15 @@
                     </div>
                 @endif
 
-                @if ($tugas->lampiran->isEmpty())
-                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada lampiran.</div>
+                @if ($lampiranPeserta->isEmpty())
+                    <div class="px-5 py-6 text-center text-sm text-gray-400">Belum ada lampiran hasil tugas.</div>
                 @else
                     <div class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @foreach ($tugas->lampiran as $lamp)
+                        @foreach ($lampiranPeserta as $lamp)
                             <div class="flex items-center gap-3 px-5 py-3">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $lamp->nama_file }}</p>
-                                    <p class="text-xs text-gray-400">{{ strtoupper($lamp->tipe_file) }} · {{ $lamp->ukuran_file }} KB</p>
+                                    <p class="text-xs text-gray-400">{{ strtoupper($lamp->tipe_file) }} · {{ $lamp->ukuran_file }} KB · {{ $lamp->uploader->nama_lengkap }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <a href="{{ Storage::url($lamp->path_file) }}" target="_blank"

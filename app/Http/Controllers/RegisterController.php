@@ -22,6 +22,15 @@ class RegisterController extends Controller
     public function store(StoreRegister $request): RedirectResponse
     {
         $data = $request->validated();
+        
+        // Extract enrollment data
+        $programId = $data['program_pelatihan_id'];
+        $kelasId = $data['jenis_kelas_id'];
+        $durasi = $data['durasi_pelatihan'];
+        
+        // Remove from user data
+        unset($data['program_pelatihan_id'], $data['jenis_kelas_id'], $data['durasi_pelatihan']);
+
         $data['role'] = 'peserta_didik'; 
         $data['status'] = 'aktif';
         
@@ -29,7 +38,16 @@ class RegisterController extends Controller
         $count = User::where('role', 'peserta_didik')->count() + 1;
         $data['no_registrasi'] = 'EDU' . '-'  . time() . str_pad($count, 4, '0', STR_PAD_LEFT);
         
-        User::create($data);
+        $user = User::create($data);
+
+        // Create initial enrollment
+        \App\Models\Enrollment::create([
+            'user_id' => $user->id,
+            'program_pelatihan_id' => $programId,
+            'jenis_kelas_id' => $kelasId,
+            'durasi_pelatihan' => $durasi,
+            'status' => 'aktif',
+        ]);
 
         return redirect()->route('login')
             ->with('success', 'Pendaftaran berhasil, silahkan login.');

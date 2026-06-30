@@ -68,6 +68,12 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     Route::delete('sub-tugas/{subTugas}', [Mentor\SubTugasController::class, 'destroy'])
         ->name('sub-tugas.destroy');
 
+    // Lampiran
+    Route::post('tugas/{tugas}/lampiran', [Mentor\LampiranController::class, 'store'])
+        ->name('lampiran.store');
+    Route::delete('lampiran/{lampiran}', [Mentor\LampiranController::class, 'destroy'])
+        ->name('lampiran.destroy');
+
     // Evaluasi
     Route::resource('evaluasi', Mentor\EvaluasiController::class)
         ->only(['index', 'store']);
