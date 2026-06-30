@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Enrollment;
 use App\Models\Penilaian;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ class PenilaianController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Penilaian::with(['peserta.programPelatihan', 'peserta.jenisKelas', 'mentor'])->latest();
+        $query = Penilaian::with(['enrollment.peserta', 'enrollment.programPelatihan', 'enrollment.jenisKelas', 'mentor'])->latest();
 
         // Search berdasarkan nama peserta atau mentor
         if ($request->filled('search')) {
@@ -23,9 +23,9 @@ class PenilaianController extends Controller
             });
         }
 
-        // Filter berdasarkan peserta (opsional)
-        if ($request->filled('peserta_id')) {
-            $query->where('peserta_id', $request->peserta_id);
+        // Filter berdasarkan enrollment (opsional)
+        if ($request->filled('enrollment_id')) {
+            $query->where('enrollment_id', $request->enrollment_id);
         }
 
         // Filter berdasarkan bulan_ke (opsional)
@@ -34,8 +34,10 @@ class PenilaianController extends Controller
         }
 
         $penilaians = $query->paginate(15)->withQueryString();
-        $pesertas   = User::where('role', 'peserta_didik')->with(['programPelatihan', 'jenisKelas'])->orderBy('nama_lengkap')->get();
+        $enrollments = Enrollment::with(['peserta', 'programPelatihan', 'jenisKelas'])
+            ->whereHas('peserta', fn($q) => $q->orderBy('nama_lengkap'))
+            ->get();
 
-        return view('admin.penilaian.index', compact('penilaians', 'pesertas'));
+        return view('admin.penilaian.index', compact('penilaians', 'enrollments'));
     }
 }

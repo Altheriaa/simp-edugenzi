@@ -24,9 +24,6 @@ class StoreUserRequest extends FormRequest
             'password'             => ['required', 'confirmed', Password::min(8)],
             'role'                 => ['required', 'in:admin,mentor,peserta_didik'],
             'status'               => ['required', 'in:aktif,nonaktif'],
-            'program_pelatihan_id' => ['nullable', 'exists:program_pelatihans,id'],
-            'jenis_kelas_id'       => ['nullable', 'exists:jenis_kelas,id'],
-            'durasi_pelatihan'     => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -41,8 +38,6 @@ class StoreUserRequest extends FormRequest
             'email.unique'                   => 'Email sudah terdaftar.',
             'password.confirmed'             => 'Konfirmasi password tidak sesuai.',
             'role.in'                        => 'Role tidak valid.',
-            'program_pelatihan_id.exists'    => 'Program pelatihan tidak valid.',
-            'jenis_kelas_id.exists'          => 'Jenis kelas tidak valid.',
         ];
     }
 

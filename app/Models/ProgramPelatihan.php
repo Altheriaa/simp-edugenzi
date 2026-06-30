@@ -24,10 +24,10 @@ class ProgramPelatihan extends Model
         return $this->hasMany(ProgramKelasDurasi::class, 'program_pelatihan_id');
     }
 
-    /** Users yang terdaftar pada program ini */
-    public function users(): HasMany
+    /** Enrollments yang terdaftar pada program ini */
+    public function enrollments(): HasMany
     {
-        return $this->hasMany(User::class, 'program_pelatihan_id');
+        return $this->hasMany(Enrollment::class, 'program_pelatihan_id');
     }
 
     public function proyek(): HasMany

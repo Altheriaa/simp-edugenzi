@@ -16,29 +16,7 @@
     </div>
 
     {{-- Form --}}
-    <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
-         x-data='{
-            role: "{{ old('role') }}",
-            programId: "{{ old('program_pelatihan_id') }}",
-            kelasId:   "{{ old('jenis_kelas_id') }}",
-            durasi:    "{{ old('durasi_pelatihan') }}",
-            optionsMap: @json(json_decode($optionsJson, true)),
-            allKelas: @json($jenisKelas->mapWithKeys(fn($jk) => [$jk->id => $jk->nama])),
-            get availableKelas() {
-                if (!this.programId || !this.optionsMap[this.programId]) return [];
-                return Object.keys(this.optionsMap[this.programId]);
-            },
-            get availableDurasi() {
-                if (!this.programId || !this.kelasId) return [];
-                return (this.optionsMap[this.programId] || {})[this.kelasId] || [];
-            },
-            onProgramChange() { this.kelasId = ""; this.durasi = ""; },
-            onKelasChange()   {
-                this.durasi = "";
-                const d = this.availableDurasi;
-                if (d.length === 1) this.durasi = d[0];
-            }
-         }'>
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <form action="{{ route('admin.pengguna.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -123,7 +101,7 @@
                     <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Role <span class="text-red-500">*</span>
                     </label>
-                    <select id="role" name="role" x-model="role"
+                    <select id="role" name="role"
                         class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white @error('role') border-red-400 @enderror">
                         <option value="">-- Pilih Role --</option>
                         <option value="admin" @selected(old('role') === 'admin')>Admin</option>
@@ -143,10 +121,6 @@
                         <option value="nonaktif" @selected(old('status') === 'nonaktif')>Nonaktif</option>
                     </select>
                 </div>
-
-
-
-
             </div>
 
             {{-- Actions --}}

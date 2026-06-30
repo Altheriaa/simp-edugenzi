@@ -16,7 +16,7 @@ class ProgramPelatihanController extends Controller
     {
         $search = request('search');
 
-        $programs = ProgramPelatihan::withCount(['users', 'kelasDurasi'])
+        $programs = ProgramPelatihan::withCount(['enrollments', 'kelasDurasi'])
             ->with(['proyek.mentor'])
             ->when($search, function ($query, $search) {
                 $query->where('nama_program', 'like', "%{$search}%");
@@ -87,7 +87,7 @@ class ProgramPelatihanController extends Controller
 
     public function destroy(ProgramPelatihan $programPelatihan): RedirectResponse
     {
-        if ($programPelatihan->users()->exists()) {
+        if ($programPelatihan->enrollments()->exists()) {
             return redirect()->route('admin.program-pelatihan.index')
                 ->with('error', 'Tidak dapat menghapus program pelatihan karena masih memiliki peserta terdaftar.');
         }

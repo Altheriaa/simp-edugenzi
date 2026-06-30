@@ -13,7 +13,7 @@ class JenisKelasController extends Controller
 {
     public function index(): View
     {
-        $jenisKelas = JenisKelas::withCount(['users', 'programKelasDurasi'])
+        $jenisKelas = JenisKelas::withCount(['enrollments', 'programKelasDurasi'])
             ->orderBy('nama')
             ->get();
 
@@ -77,7 +77,7 @@ class JenisKelasController extends Controller
     {
         $jenisKelas = JenisKelas::findOrFail($id);
 
-        if ($jenisKelas->users()->exists()) {
+        if ($jenisKelas->enrollments()->exists()) {
             return redirect()->route('admin.jenis-kelas.index')
                 ->with('error', 'Tidak dapat menghapus jenis kelas karena masih memiliki peserta terdaftar.');
         }

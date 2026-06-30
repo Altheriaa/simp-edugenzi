@@ -35,6 +35,11 @@ class MenuHelper
                             'path' => '/admin/peserta-didik',
                         ],
                         [
+                            'icon' => 'forms',
+                            'name' => 'Manajemen Enrollment',
+                            'path' => '/admin/enrollment',
+                        ],
+                        [
                             'icon' => 'data-master',
                             'name' => 'Data Master',
                             'subItems' => [

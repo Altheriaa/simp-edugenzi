@@ -27,15 +27,15 @@
                 </div>
             </div>
             <div>
-                <label for="peserta_id" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Peserta</label>
-                <select name="peserta_id" id="peserta_id"
+                <label for="enrollment_id" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Peserta & Program</label>
+                <select name="enrollment_id" id="enrollment_id"
                         class="rounded-lg border border-gray-300 bg-transparent px-3 py-1.5 text-sm text-gray-800 focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                    <option value="">Semua Peserta</option>
-                    @foreach ($pesertas as $p)
-                        <option value="{{ $p->id }}" class="dark:bg-gray-900" {{ request('peserta_id') == $p->id ? 'selected' : '' }}>
-                            {{ $p->nama_lengkap }}
-                            @if($p->programPelatihan) - {{ $p->programPelatihan->nama_program }} @endif
-                            @if($p->jenisKelas) ({{ $p->jenisKelas->nama }}) @endif
+                    <option value="">Semua</option>
+                    @foreach ($enrollments as $e)
+                        <option value="{{ $e->id }}" class="dark:bg-gray-900" {{ request('enrollment_id') == $e->id ? 'selected' : '' }}>
+                            {{ $e->peserta->nama_lengkap }}
+                            @if($e->programPelatihan) - {{ $e->programPelatihan->nama_program }} @endif
+                            @if($e->jenisKelas) ({{ $e->jenisKelas->nama_kelas }}) @endif
                         </option>
                     @endforeach
                 </select>
@@ -56,7 +56,7 @@
                     class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 Filter
             </button>
-            @if (request()->hasAny(['peserta_id','bulan_ke','search']))
+            @if (request()->hasAny(['enrollment_id','bulan_ke','search']))
                 <a href="{{ route('admin.penilaian.index') }}"
                    class="rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     Reset
@@ -90,13 +90,13 @@
                         @foreach ($penilaians as $penilaian)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                                 <td class="px-6 py-3">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $penilaian->peserta->nama_lengkap }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $penilaian->enrollment->peserta->nama_lengkap ?? 'Peserta' }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        @if($penilaian->peserta->programPelatihan)
-                                            {{ $penilaian->peserta->programPelatihan->nama_program }}
+                                        @if($penilaian->enrollment && $penilaian->enrollment->programPelatihan)
+                                            {{ $penilaian->enrollment->programPelatihan->nama_program }}
                                         @endif
-                                        @if($penilaian->peserta->jenisKelas)
-                                            <span class="capitalize">({{ $penilaian->peserta->jenisKelas->nama }})</span>
+                                        @if($penilaian->enrollment && $penilaian->enrollment->jenisKelas)
+                                            <span class="capitalize">({{ $penilaian->enrollment->jenisKelas->nama_kelas }})</span>
                                         @endif
                                     </p>
                                 </td>

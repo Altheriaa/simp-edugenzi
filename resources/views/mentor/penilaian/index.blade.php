@@ -8,8 +8,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Penilaian Peserta</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Pilih peserta didik untuk melihat atau menambah
-                    nilai.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Pilih program pelatihan peserta didik untuk melihat atau menambah nilai.</p>
             </div>
             <a href="{{ route('mentor.penilaian.create') }}"
                 class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
@@ -24,29 +23,27 @@
 
         {{-- Search --}}
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
-            <x-search-bar :action="route('mentor.penilaian.index')" placeholder="Cari nama peserta..." />
+            <x-search-bar :action="route('mentor.penilaian.index')" placeholder="Cari nama peserta atau program..." />
         </div>
 
-        {{-- Grid Kartu Peserta --}}
-        @if ($pesertas->isEmpty())
+        {{-- Grid Kartu Enrollment --}}
+        @if ($enrollments->isEmpty())
             <div
                 class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 py-16 text-center text-gray-400">
                 <svg class="mx-auto h-12 w-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <p class="text-sm">Belum ada peserta didik aktif terdaftar.</p>
+                <p class="text-sm">Belum ada enrollment peserta didik aktif terdaftar di proyek Anda.</p>
             </div>
         @else
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($pesertas as $peserta)
+                @foreach ($enrollments as $enrollment)
                     @php
-                        $nilaiList = $peserta->penilaianSebagaiPeserta;
+                        $peserta = $enrollment->peserta;
+                        $nilaiList = $enrollment->penilaian;
                         $jumlahNilai = $nilaiList->count();
-                        $maxBulan = match (true) {
-                            str_contains($peserta->durasi_pelatihan ?? '', '3 Bulan') => 3,
-                            default => 6,
-                        };
+                        $maxBulan = $enrollment->getDurasiBulan() ?: 6;
                         $rataRata = $jumlahNilai > 0
                             ? round($nilaiList->avg('rata_rata'), 1)
                             : 0;
@@ -72,7 +69,7 @@
 
                         {{-- Info pelatihan --}}
                         <div class="px-5 pt-4 pb-2 space-y-2 flex-1">
-                            @if ($peserta->programPelatihan)
+                            @if ($enrollment->programPelatihan)
                                 <div class="flex items-center gap-2">
                                     <svg class="h-3.5 w-3.5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -80,7 +77,7 @@
                                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
                                     <span
-                                        class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ $peserta->programPelatihan->nama_program }}</span>
+                                        class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ $enrollment->programPelatihan->nama_program }}</span>
                                 </div>
                             @endif
                             <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -89,10 +86,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    {{ $peserta->durasi_pelatihan ?? 'Durasi belum diset' }}
+                                    {{ $enrollment->durasi_pelatihan ?? 'Durasi belum diset' }}
                                 </span>
-                                @if ($peserta->jenisKelas)
-                                    <span class="capitalize">{{ $peserta->jenisKelas->nama }}</span>
+                                @if ($enrollment->jenisKelas)
+                                    <span class="capitalize">{{ $enrollment->jenisKelas->nama_kelas }}</span>
                                 @endif
                             </div>
 
@@ -131,7 +128,7 @@
 
                         {{-- Footer actions --}}
                         <div class="px-5 pb-5 pt-3 flex items-center gap-2">
-                            <a href="{{ route('mentor.penilaian.detail', $peserta) }}"
+                            <a href="{{ route('mentor.penilaian.detail', $enrollment) }}"
                                 class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -139,7 +136,7 @@
                                 </svg>
                                 Lihat Detail
                             </a>
-                            <a href="{{ route('mentor.penilaian.create', ['peserta_id' => $peserta->id]) }}"
+                            <a href="{{ route('mentor.penilaian.create', ['enrollment_id' => $enrollment->id]) }}"
                                 class="inline-flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                 title="Beri penilaian baru">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,8 +149,8 @@
             </div>
 
             {{-- Pagination --}}
-            @if ($pesertas->hasPages())
-                <div>{{ $pesertas->links() }}</div>
+            @if ($enrollments->hasPages())
+                <div>{{ $enrollments->links() }}</div>
             @endif
         @endif
     </div>

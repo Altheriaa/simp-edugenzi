@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Models\JenisKelas;
-use App\Models\ProgramKelasDurasi;
-use App\Models\ProgramPelatihan;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -31,7 +28,6 @@ class PenggunaController extends Controller
                       ->orWhere('role', 'like', "%{$search}%");
                 });
             }) 
-            ->with(['programPelatihan', 'jenisKelas'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -41,18 +37,13 @@ class PenggunaController extends Controller
 
     public function create(): View
     {
-        $programs    = ProgramPelatihan::aktif()->orderBy('nama_program')->get();
-        $jenisKelas  = JenisKelas::aktif()->get();
-        $optionsJson = $this->buildOptionsJson();
-
-        return view('admin.pengguna.create', compact('programs', 'jenisKelas', 'optionsJson'));
+        return view('admin.pengguna.create');
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
-        // Admin and Mentor do not need no_registrasi like peserta didiks
         User::create($data);
 
         return redirect()->route('admin.pengguna.index')
@@ -61,11 +52,7 @@ class PenggunaController extends Controller
 
     public function edit(User $pengguna): View
     {
-        $programs    = ProgramPelatihan::aktif()->orderBy('nama_program')->get();
-        $jenisKelas  = JenisKelas::aktif()->get();
-        $optionsJson = $this->buildOptionsJson();
-
-        return view('admin.pengguna.edit', compact('pengguna', 'programs', 'jenisKelas', 'optionsJson'));
+        return view('admin.pengguna.edit', compact('pengguna'));
     }
 
     public function update(UpdateUserRequest $request, User $pengguna): RedirectResponse
@@ -82,23 +69,5 @@ class PenggunaController extends Controller
 
         return redirect()->route('admin.pengguna.index')
             ->with('success', 'Pengguna berhasil dihapus.');
-    }
-
-    /**
-     * Bangun mapping JSON: { programId: { kelasId: ['1 Bulan', ...] } }
-     * Digunakan oleh Alpine.js di form create/edit untuk dropdown dinamis.
-     */
-    private function buildOptionsJson(): string
-    {
-        $rows = ProgramKelasDurasi::with(['programPelatihan', 'jenisKelas'])->get();
-
-        $map = [];
-        foreach ($rows as $row) {
-            $pid = $row->program_pelatihan_id;
-            $kid = $row->jenis_kelas_id;
-            $map[$pid][$kid][] = $row->durasi_pelatihan;
-        }
-
-        return json_encode($map);
     }
 }

@@ -105,20 +105,15 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($pengguna->role === 'peserta_didik' && $pengguna->programPelatihan)
-                                        <div class="flex flex-col gap-1">
-                                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">
-                                                {{ $pengguna->programPelatihan->nama_program }}
+                                    @if($pengguna->role === 'peserta_didik')
+                                        @php $enrollCount = $pengguna->enrollments->count() @endphp
+                                        @if($enrollCount > 0)
+                                            <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                                {{ $enrollCount }} Program
                                             </span>
-                                            @if($pengguna->jenisKelas)
-                                                <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ $pengguna->jenisKelas->nama }}
-                                                    @if($pengguna->durasi_pelatihan)
-                                                        ({{ $pengguna->durasi_pelatihan }})
-                                                    @endif
-                                                </span>
-                                            @endif
-                                        </div>
+                                        @else
+                                            <span class="text-xs text-gray-400">Belum terdaftar</span>
+                                        @endif
                                     @else
                                         <span class="text-sm text-gray-400 dark:text-gray-500">-</span>
                                     @endif

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -30,9 +29,6 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
-        'program_pelatihan_id',
-        'jenis_kelas_id',
-        'durasi_pelatihan',
     ];
 
     /**
@@ -57,26 +53,24 @@ class User extends Authenticatable
         ];
     }
 
-    // --- Relasi Master Pelatihan ---
-
-    /** Program pelatihan yang diikuti (khusus peserta_didik) */
-    public function programPelatihan(): BelongsTo
-    {
-        return $this->belongsTo(ProgramPelatihan::class, 'program_pelatihan_id');
-    }
-
-    /** Jenis kelas yang diikuti (khusus peserta_didik) */
-    public function jenisKelas(): BelongsTo
-    {
-        return $this->belongsTo(JenisKelas::class, 'jenis_kelas_id');
-    }
-
     // --- Relasi ---
 
     /** Proyek yang dipegang oleh mentor ini */
     public function proyek(): HasMany
     {
         return $this->hasMany(Proyek::class, 'user_id');
+    }
+
+    /** Semua enrollment (pendaftaran program) peserta ini */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'user_id');
+    }
+
+    /** Enrollment yang masih aktif */
+    public function enrollmentsAktif(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'user_id')->where('status', 'aktif');
     }
 
     /** Proyek yang diikuti oleh peserta ini */
@@ -127,37 +121,18 @@ class User extends Authenticatable
         return $this->hasMany(Sertifikat::class, 'peserta_id');
     }
 
-    /** Cek apakah nilai peserta sudah diisi penuh sesuai durasi pelatihan */
-    public function isPenilaianLengkap(): bool
+    /**
+     * Cek apakah nilai peserta pada enrollment tertentu sudah lengkap.
+     * Jika enrollment tidak disediakan, cek salah satu enrollment aktif yang sudah lengkap.
+     */
+    public function isPenilaianLengkap(?Enrollment $enrollment = null): bool
     {
-        if (!$this->durasi_pelatihan) {
-            return false;
+        if ($enrollment) {
+            return $enrollment->isPenilaianLengkap();
         }
 
-        $durasi = intval($this->durasi_pelatihan);
-        if ($durasi <= 0) {
-            return false;
-        }
-
-        $penilaians = $this->penilaianSebagaiPeserta()->get();
-        if ($penilaians->count() < $durasi) {
-            return false;
-        }
-
-        $validCount = 0;
-        foreach ($penilaians as $p) {
-            // Semua 8 field nilai dalam bulan tersebut harus > 0
-            if (
-                $p->m1_kls > 0 && $p->m1_pr > 0 &&
-                $p->m2_kls > 0 && $p->m2_pr > 0 &&
-                $p->m3_kls > 0 && $p->m3_pr > 0 &&
-                $p->m4_kls > 0 && $p->m4_pr > 0
-            ) {
-                $validCount++;
-            }
-        }
-
-        return $validCount >= $durasi;
+        // Fallback: cek apakah ada enrollment aktif yang sudah lengkap
+        return $this->enrollmentsAktif()->get()->some(fn($e) => $e->isPenilaianLengkap());
     }
 }
 

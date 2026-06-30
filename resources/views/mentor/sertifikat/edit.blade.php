@@ -31,51 +31,25 @@
             @method('PUT')
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {{-- Peserta --}}
-                <div>
-                    <label for="peserta_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Peserta Didik <span class="text-red-500">*</span>
+                {{-- Pilih Enrollment --}}
+                <div class="sm:col-span-2">
+                    <label for="enrollment_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        Peserta & Program Pelatihan <span class="text-red-500">*</span>
                     </label>
-                    <select name="peserta_id" id="peserta_id" required
-                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('peserta_id') border-red-400 @enderror">
-                        <option value="">-- Pilih Peserta --</option>
-                        @foreach ($pesertas as $peserta)
-                            <option value="{{ $peserta->id }}" class="dark:bg-gray-900"
-                                {{ (old('peserta_id', $sertifikat->peserta_id) == $peserta->id) ? 'selected' : '' }}>
-                                {{ $peserta->no_registrasi }} - {{ $peserta->nama_lengkap }}
+                    <select name="enrollment_id" id="enrollment_id" required
+                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('enrollment_id') border-red-400 @enderror">
+                        <option value="">-- Pilih Peserta & Program --</option>
+                        @foreach($enrollmentsEligible as $enrollment)
+                            <option value="{{ $enrollment->id }}"
+                                {{ (old('enrollment_id', $sertifikat->enrollment_id) == $enrollment->id) ? 'selected' : '' }}>
+                                {{ $enrollment->peserta->nama_lengkap }} — {{ $enrollment->programPelatihan->nama_program ?? '-' }}
+                                @if($enrollment->jenisKelas) ({{ $enrollment->jenisKelas->nama_kelas }}) @endif
                             </option>
                         @endforeach
                     </select>
-                    @error('peserta_id')
+                    @error('enrollment_id')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
-                    @if($pesertas->isEmpty())
-                        <p class="mt-1.5 text-xs text-orange-500 font-medium">
-                            <svg class="inline w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            Tidak ada peserta didik di proyek Anda yang nilainya sudah terisi penuh (lengkap).
-                        </p>
-                    @endif
-                </div>
-
-
-                {{-- Nama Program --}}
-                <div class="sm:col-span-2">
-                    <div class="rounded-lg bg-blue-50 p-4 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">Informasi Program Pelatihan</h3>
-                                <div class="mt-1 text-sm text-blue-700 dark:text-blue-400">
-                                    Nama program pelatihan saat ini: <strong>{{ $sertifikat->nama_program }}</strong>.<br>
-                                    Jika Anda mengubah peserta didik, nama program akan diperbarui secara otomatis.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- Tanggal Terbit --}}
@@ -85,7 +59,7 @@
                     </label>
                     <input type="date" name="tgl_terbit" id="tgl_terbit" required
                            value="{{ old('tgl_terbit', $sertifikat->tgl_terbit->format('Y-m-d')) }}"
-                           class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('tgl_terbit') border-red-400 @enderror">
+                           class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('tgl_terbit') border-red-400 @enderror">
                     @error('tgl_terbit')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror

@@ -37,6 +37,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('jenis-kelas', Admin\JenisKelasController::class)->except(['show']);
     Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
     Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
+
+    // Enrollment (pendaftaran peserta ke program pelatihan)
+    Route::resource('enrollment', Admin\EnrollmentController::class)->except(['show', 'edit', 'update']);
+    Route::patch('enrollment/{enrollment}/status', [Admin\EnrollmentController::class, 'updateStatus'])
+        ->name('enrollment.status');
 });
 
 // --- Mentor ---
@@ -65,8 +70,8 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     Route::resource('evaluasi', Mentor\EvaluasiController::class)
         ->only(['index', 'store']);
 
-    // Penilaian — list peserta, lalu detail per peserta
-    Route::get('penilaian/{peserta}/detail', [Mentor\PenilaianController::class, 'detail'])
+    // Penilaian — list enrollment, lalu detail per enrollment
+    Route::get('penilaian/{enrollment}/detail', [Mentor\PenilaianController::class, 'detail'])
         ->name('penilaian.detail');
     Route::resource('penilaian', Mentor\PenilaianController::class)
         ->except(['show']);

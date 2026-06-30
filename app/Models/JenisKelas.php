@@ -25,10 +25,10 @@ class JenisKelas extends Model
         return $this->hasMany(ProgramKelasDurasi::class, 'jenis_kelas_id');
     }
 
-    /** Users yang terdaftar pada jenis kelas ini */
-    public function users(): HasMany
+    /** Enrollments yang terdaftar pada jenis kelas ini */
+    public function enrollments(): HasMany
     {
-        return $this->hasMany(User::class, 'jenis_kelas_id');
+        return $this->hasMany(Enrollment::class, 'jenis_kelas_id');
     }
 
     /** Scope: hanya jenis kelas aktif */

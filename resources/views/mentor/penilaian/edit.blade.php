@@ -23,55 +23,52 @@
             @csrf
             @method('PUT')
 
-            {{-- Peserta & Bulan Ke --}}
+            {{-- Enrollment & Bulan Ke --}}
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <label for="peserta_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Peserta Didik <span class="text-red-500">*</span>
+                    <label for="enrollment_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        Enrollment Peserta <span class="text-red-500">*</span>
                     </label>
-                    <select name="peserta_id" id="peserta_id" required
-                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('peserta_id') border-red-400 @enderror"
-                            @change="$dispatch('peserta-changed', { id: $event.target.value })">
-                        <option value="">-- Pilih Peserta --</option>
-                        @foreach ($pesertas as $peserta)
-                            <option value="{{ $peserta->id }}"
+                    <select name="enrollment_id" id="enrollment_id" required
+                            class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white @error('enrollment_id') border-red-400 @enderror"
+                            @change="$dispatch('enrollment-changed', { id: $event.target.value })">
+                        <option value="">-- Pilih Enrollment --</option>
+                        @foreach ($enrollments as $enrollment)
+                            <option value="{{ $enrollment->id }}"
                                     class="dark:bg-gray-900"
-                                    data-max="{{ $durasiMap[$peserta->id] ?? 6 }}"
-                                    {{ (old('peserta_id', $penilaian->peserta_id) == $peserta->id) ? 'selected' : '' }}>
-                                {{ $peserta->no_registrasi }} - {{ $peserta->nama_lengkap }}
-                                @if($peserta->programPelatihan)
-                                    - {{ $peserta->programPelatihan->nama_program }}
+                                    data-max="{{ $durasiMap[$enrollment->id] ?? 6 }}"
+                                    {{ (old('enrollment_id', $penilaian->enrollment_id) == $enrollment->id) ? 'selected' : '' }}>
+                                {{ $enrollment->peserta->no_registrasi }} - {{ $enrollment->peserta->nama_lengkap }}
+                                @if($enrollment->programPelatihan)
+                                    - {{ $enrollment->programPelatihan->nama_program }}
                                 @endif
-                                @if($peserta->jenisKelas)
-                                    ({{ $peserta->jenisKelas->nama }})
-                                @endif
-                                @if($peserta->durasi_pelatihan)
-                                    - {{ $peserta->durasi_pelatihan }}
+                                @if($enrollment->jenisKelas)
+                                    ({{ $enrollment->jenisKelas->nama_kelas }})
                                 @endif
                             </option>
                         @endforeach
                     </select>
-                    @error('peserta_id')
+                    @error('enrollment_id')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 @php
-                    $currentPeserta = $pesertas->find(old('peserta_id', $penilaian->peserta_id));
-                    $initialMax = $durasiMap[$currentPeserta?->id ?? 0] ?? 6;
+                    $currentEnrollment = $enrollments->find(old('enrollment_id', $penilaian->enrollment_id));
+                    $initialMax = $durasiMap[$currentEnrollment?->id ?? 0] ?? 6;
                 @endphp
 
                 <div x-data="{
                         maxBulan: {{ $initialMax }},
                         bulanKe: {{ old('bulan_ke', $penilaian->bulan_ke) }},
                         updateMax(id) {
-                            const sel = document.getElementById('peserta_id');
+                            const sel = document.getElementById('enrollment_id');
                             const opt = sel.querySelector('option[value=\''+id+'\']');
                             this.maxBulan = opt ? parseInt(opt.dataset.max || 6) : 6;
                             if (this.bulanKe > this.maxBulan) this.bulanKe = this.maxBulan;
                         }
                     }"
-                    @peserta-changed.window="updateMax($event.detail.id)">
+                    @enrollment-changed.window="updateMax($event.detail.id)">
                     <label for="bulan_ke" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Periode Pelatihan <span class="text-red-500">*</span>
                         <span class="font-normal text-gray-400" x-text="'(maks. Bulan Ke-' + maxBulan + ')'"></span>

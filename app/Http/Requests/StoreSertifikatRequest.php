@@ -15,7 +15,7 @@ class StoreSertifikatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'peserta_id'       => ['required', 'exists:users,id'],
+            'enrollment_id'    => ['required', 'exists:enrollments,id'],
             'tgl_terbit'       => ['required', 'date'],
         ];
     }
@@ -23,10 +23,9 @@ class StoreSertifikatRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'peserta_id.required'   => 'Peserta didik wajib dipilih.',
-            'peserta_id.exists'     => 'Peserta didik tidak ditemukan.',
-            'nama_program.required' => 'Nama program wajib diisi.',
-            'tgl_terbit.required'   => 'Tanggal terbit wajib diisi.',
+            'enrollment_id.required' => 'Program pelatihan peserta wajib dipilih.',
+            'enrollment_id.exists'   => 'Enrollment tidak ditemukan.',
+            'tgl_terbit.required'    => 'Tanggal terbit wajib diisi.',
         ];
     }
 }

@@ -52,9 +52,6 @@
                                 NIK</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                NO Registrasi</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Nama</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -83,7 +80,6 @@
                                     {{ $loop->iteration + ($penggunas->currentPage() - 1) * $penggunas->perPage() }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ $pengguna->nik }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ $pengguna->no_registrasi }}</td>
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $pengguna->nama_lengkap }}

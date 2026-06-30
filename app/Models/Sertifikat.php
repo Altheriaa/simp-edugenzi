@@ -13,6 +13,7 @@ class Sertifikat extends Model
         'nomor_sertifikat',
         'peserta_id',
         'mentor_id',
+        'enrollment_id',
         'nama_program',
         'tgl_terbit',
     ];
@@ -27,6 +28,12 @@ class Sertifikat extends Model
     public function peserta(): BelongsTo
     {
         return $this->belongsTo(User::class, 'peserta_id');
+    }
+
+    /** Enrollment yang terkait sertifikat ini */
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class, 'enrollment_id');
     }
 
     /** Mentor yang menerbitkan sertifikat */

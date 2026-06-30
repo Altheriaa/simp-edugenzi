@@ -70,7 +70,7 @@
                                     <span class="font-semibold">{{ $program->kelas_durasi_count }}</span> kombinasi
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                    <span class="font-semibold">{{ $program->users_count }}</span> peserta
+                                    <span class="font-semibold">{{ $program->enrollments_count }}</span> peserta
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">

@@ -12,6 +12,7 @@ class Penilaian extends Model
     protected $fillable = [
         'peserta_id',
         'mentor_id',
+        'enrollment_id',
         'bulan_ke',
         'm1_kls',
         'm1_pr',
@@ -37,6 +38,12 @@ class Penilaian extends Model
     ];
 
     // --- Relasi ---
+
+    /** Enrollment terkait penilaian ini */
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class, 'enrollment_id');
+    }
 
     /** Peserta didik yang dinilai */
     public function peserta(): BelongsTo
