@@ -297,7 +297,15 @@
 
     {{-- Print / Back Buttons --}}
     <div class="no-print" style="display:flex;gap:12px;margin-bottom:20px;">
-        <a href="{{ route('peserta.sertifikat.index') }}"
+        @php
+            $backUrl = route('peserta.sertifikat.index');
+            if (Auth::user()->role === 'admin') {
+                $backUrl = route('admin.sertifikat.index');
+            } elseif (Auth::user()->role === 'mentor') {
+                $backUrl = route('mentor.sertifikat.index');
+            }
+        @endphp
+        <a href="{{ $backUrl }}"
             style="background:#fff;color:#333;border:1px solid #ccc;padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;">
             ← Kembali
         </a>

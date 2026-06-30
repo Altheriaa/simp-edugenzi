@@ -84,7 +84,7 @@
                         @foreach($jenisKelas as $kelas)
                             <option value="{{ $kelas->id }}" {{ old('jenis_kelas_id') == $kelas->id ? 'selected' : '' }}
                                 x-show="!selectedProgram || (options[selectedProgram] && options[selectedProgram][{{ $kelas->id }}])">
-                                {{ $kelas->nama_kelas }}
+                                {{ $kelas->nama }}
                             </option>
                         @endforeach
                     </select>

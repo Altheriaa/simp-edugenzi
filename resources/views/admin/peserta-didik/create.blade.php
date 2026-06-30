@@ -107,6 +107,7 @@
                         class="h-11 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                         <option value="aktif" @selected(old('status', 'aktif') === 'aktif')>Aktif</option>
                         <option value="nonaktif" @selected(old('status') === 'nonaktif')>Nonaktif</option>
+                        <option value="lulus" @selected(old('status') === 'lulus')>Lulus / Alumni</option>
                     </select>
                 </div>
 

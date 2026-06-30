@@ -23,16 +23,19 @@ class TugasController extends Controller
         $query = User::where('role', 'peserta_didik')
             ->where('status', 'aktif');
 
-        if ($proyek->program_pelatihan_id) {
-            $query->where('program_pelatihan_id', $proyek->program_pelatihan_id);
-        }
-
-        if ($proyek->jenis_kelas_id) {
-            $query->where('jenis_kelas_id', $proyek->jenis_kelas_id);
-        }
-
-        if ($proyek->durasi_pelatihan) {
-            $query->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+        if ($proyek->program_pelatihan_id || $proyek->jenis_kelas_id || $proyek->durasi_pelatihan) {
+            $query->whereHas('enrollments', function ($q) use ($proyek) {
+                $q->where('status', 'aktif');
+                if ($proyek->program_pelatihan_id) {
+                    $q->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+                }
+                if ($proyek->jenis_kelas_id) {
+                    $q->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+                }
+                if ($proyek->durasi_pelatihan) {
+                    $q->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                }
+            });
         }
 
         $pesertaList = $query->orderBy('nama_lengkap')->get();
@@ -72,14 +75,19 @@ class TugasController extends Controller
             ->where(function ($q) use ($proyek, $tugas) {
                 $q->where(function ($sub) use ($proyek) {
                     $sub->where('status', 'aktif');
-                    if ($proyek->program_pelatihan_id) {
-                        $sub->where('program_pelatihan_id', $proyek->program_pelatihan_id);
-                    }
-                    if ($proyek->jenis_kelas_id) {
-                        $sub->where('jenis_kelas_id', $proyek->jenis_kelas_id);
-                    }
-                    if ($proyek->durasi_pelatihan) {
-                        $sub->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                    if ($proyek->program_pelatihan_id || $proyek->jenis_kelas_id || $proyek->durasi_pelatihan) {
+                        $sub->whereHas('enrollments', function ($eq) use ($proyek) {
+                            $eq->where('status', 'aktif');
+                            if ($proyek->program_pelatihan_id) {
+                                $eq->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+                            }
+                            if ($proyek->jenis_kelas_id) {
+                                $eq->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+                            }
+                            if ($proyek->durasi_pelatihan) {
+                                $eq->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                            }
+                        });
                     }
                 })->orWhere('id', $tugas->user_id);
             });

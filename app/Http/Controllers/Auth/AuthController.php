@@ -37,6 +37,25 @@ class AuthController extends Controller
                 ->onlyInput("email");
         }
 
+        $user = Auth::user();
+
+        if ($user->status !== 'aktif') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            $message = $user->status === 'lulus' 
+                ? 'Akun Anda telah berstatus Lulus / Alumni dan tidak dapat mengakses sistem.'
+                : 'Akun Anda telah dinonaktifkan oleh Administrator.';
+
+            return redirect()
+                ->route("login")
+                ->withErrors([
+                    "email" => $message,
+                ])
+                ->onlyInput("email");
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended($this->redirectBasedOnRole());

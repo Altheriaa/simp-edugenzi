@@ -23,7 +23,7 @@ class StoreUserRequest extends FormRequest
             'email'                => ['required', 'email', 'max:100', 'unique:users,email'],
             'password'             => ['required', 'confirmed', Password::min(8)],
             'role'                 => ['required', 'in:admin,mentor,peserta_didik'],
-            'status'               => ['required', 'in:aktif,nonaktif'],
+            'status'               => ['required', 'in:aktif,nonaktif,lulus'],
         ];
     }
 

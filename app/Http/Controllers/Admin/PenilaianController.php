@@ -12,32 +12,34 @@ class PenilaianController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Penilaian::with(['enrollment.peserta', 'enrollment.programPelatihan', 'enrollment.jenisKelas', 'mentor'])->latest();
+        $search = $request->search;
 
-        // Search berdasarkan nama peserta atau mentor
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('peserta', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"))
-                  ->orWhereHas('mentor', fn($sub) => $sub->where('nama_lengkap', 'like', "%{$search}%"));
-            });
-        }
+        $enrollments = Enrollment::where('status', 'aktif')
+            ->with(['peserta', 'programPelatihan', 'jenisKelas', 'penilaian' => function ($q) {
+                $q->orderBy('bulan_ke');
+            }])
+            ->when($search, function ($query, $search) {
+                $query->whereHas('peserta', function ($q) use ($search) {
+                    $q->where('nama_lengkap', 'like', "%{$search}%");
+                })->orWhereHas('programPelatihan', function ($q) use ($search) {
+                    $q->where('nama_program', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
 
-        // Filter berdasarkan enrollment (opsional)
-        if ($request->filled('enrollment_id')) {
-            $query->where('enrollment_id', $request->enrollment_id);
-        }
+        return view('admin.penilaian.index', compact('enrollments'));
+    }
 
-        // Filter berdasarkan bulan_ke (opsional)
-        if ($request->filled('bulan_ke')) {
-            $query->where('bulan_ke', $request->bulan_ke);
-        }
-
-        $penilaians = $query->paginate(15)->withQueryString();
-        $enrollments = Enrollment::with(['peserta', 'programPelatihan', 'jenisKelas'])
-            ->whereHas('peserta', fn($q) => $q->orderBy('nama_lengkap'))
+    public function detail(Enrollment $enrollment): View
+    {
+        $penilaians = Penilaian::where('enrollment_id', $enrollment->id)
+            ->orderBy('bulan_ke')
             ->get();
 
-        return view('admin.penilaian.index', compact('penilaians', 'enrollments'));
+        $maxBulan = $enrollment->getDurasiBulan() ?: 6;
+
+        return view('admin.penilaian.detail', compact('enrollment', 'penilaians', 'maxBulan'));
     }
 }

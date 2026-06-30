@@ -1,13 +1,12 @@
-<header
-    class="sticky top-0 w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 xl:border-b"
-    :class="$store.sidebar.isMobileOpen ? 'hidden xl:flex' : 'flex'"
-    x-data="{
+<header class="sticky top-0 w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 xl:border-b"
+    :class="$store.sidebar.isMobileOpen ? 'hidden xl:flex' : 'flex'" x-data="{
         isApplicationMenuOpen: false,
         toggleApplicationMenu() {
             this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
         }
     }">
-    <div class="flex flex-col items-center justify-between grow xl:flex-row xl:px-6 max-w-(--breakpoint-2xl) mx-auto w-full">
+    <div
+        class="flex flex-col items-center justify-between grow xl:flex-row xl:px-6 max-w-(--breakpoint-2xl) mx-auto w-full">
         <div
             class="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 lg:py-4">
 
@@ -29,6 +28,13 @@
                         fill="" />
                 </svg>
             </button>
+
+            <!-- Thesis Title (Desktop Only) -->
+            <div class="hidden xl:block ml-4">
+                <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
+                    Rancang Bangun Sistem Informasi Manajemen Proyek Berbasis Web dengan Metode Agile pada Edugenzi Aceh
+                </h2>
+            </div>
 
             <!-- Mobile Menu Toggle Button (visible below xl) -->
             <button
@@ -66,7 +72,7 @@
                 </svg>
             </button>
         </div>
-
+        
         <!-- Application Menu (mobile) and Right Side Actions (desktop) -->
         <div :class="isApplicationMenuOpen ? 'flex' : 'hidden'"
             class="items-center justify-between w-full gap-4 px-5 py-4 xl:flex shadow-theme-md xl:justify-end xl:px-0 xl:shadow-none">
@@ -90,7 +96,7 @@
                 </button>
 
                 <!-- Notification Dropdown -->
-                <x-header.notification-dropdown />
+                {{-- <x-header.notification-dropdown /> --}}
             </div>
 
             <!-- User Dropdown -->

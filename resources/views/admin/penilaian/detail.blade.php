@@ -7,7 +7,7 @@
         {{-- Header --}}
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="flex items-center gap-3">
-                <a href="{{ route('mentor.penilaian.index') }}"
+                <a href="{{ route('admin.penilaian.index') }}"
                     class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -17,13 +17,6 @@
                 <span class="text-gray-300 dark:text-gray-700">/</span>
                 <h1 class="text-xl font-bold text-gray-900 dark:text-white">Detail Penilaian</h1>
             </div>
-            <a href="{{ route('mentor.penilaian.create', ['enrollment_id' => $enrollment->id]) }}"
-                class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Penilaian
-            </a>
         </div>
 
         <x-alert />
@@ -51,7 +44,7 @@
                     <div class="text-center">
                         <p class="text-xs text-gray-400 mb-0.5">Kelas</p>
                         <p class="font-medium text-gray-700 dark:text-gray-300 capitalize">
-                            {{ $enrollment->jenisKelas->nama ?? '-' }}</p>
+                            {{ $enrollment->jenisKelas->nama_kelas ?? $enrollment->jenisKelas->nama ?? '-' }}</p>
                     </div>
                     <div class="text-center">
                         <p class="text-xs text-gray-400 mb-0.5">Durasi</p>
@@ -117,10 +110,6 @@
                             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                     </svg>
                     <p class="text-sm">Belum ada penilaian untuk enrollment ini.</p>
-                    <a href="{{ route('mentor.penilaian.create', ['enrollment_id' => $enrollment->id]) }}"
-                        class="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors">
-                        Beri Penilaian Pertama
-                    </a>
                 </div>
             @else
                 <div class="overflow-x-auto">
@@ -157,9 +146,6 @@
                                 <th
                                     class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Rata-rata</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -170,6 +156,7 @@
                                             class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300">
                                             {{ $penilaian->label_bulan }}
                                         </span>
+                                        <div class="text-[10px] text-gray-400 mt-1">oleh {{ $penilaian->mentor->nama_lengkap ?? 'Mentor' }}</div>
                                     </td>
                                     @foreach (['m1_kls', 'm1_pr', 'm2_kls', 'm2_pr', 'm3_kls', 'm3_pr', 'm4_kls', 'm4_pr'] as $key)
                                         <td class="px-4 py-4 text-center">
@@ -191,23 +178,6 @@
                                                     d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                             </svg>
                                         </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route('mentor.penilaian.edit', $penilaian) }}"
-                                                class="inline-flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                                Edit
-                                            </a>
-                                            <form action="{{ route('mentor.penilaian.destroy', $penilaian) }}" method="POST"
-                                                onsubmit="return confirm('Hapus penilaian {{ $penilaian->label_bulan }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="inline-flex items-center gap-1 rounded-lg border border-red-200 dark:border-red-900 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                                    Hapus
-                                                </button>
-                                            </form>
-                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -233,7 +203,7 @@
         @foreach ($penilaians->filter(fn($p) => $p->catatan) as $penilaian)
             <div class="rounded-2xl border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-4">
                 <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
-                    Catatan — {{ $penilaian->label_bulan }}
+                    Catatan — {{ $penilaian->label_bulan }} (oleh {{ $penilaian->mentor->nama_lengkap ?? 'Mentor' }})
                 </p>
                 <p class="text-sm text-blue-600 dark:text-blue-300">{{ $penilaian->catatan }}</p>
             </div>

@@ -35,4 +35,11 @@ class SertifikatController extends Controller
 
         return view('admin.sertifikat.index', compact('sertifikats', 'pesertas'));
     }
+
+    public function print(Sertifikat $sertifikat): View
+    {
+        $sertifikat->load(['peserta', 'mentor']);
+
+        return view('peserta.sertifikat.print', compact('sertifikat'));
+    }
 }

@@ -36,7 +36,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('program-kelas-durasi/{id}', [Admin\ProgramPelatihanController::class, 'removeDurasi'])->name('program-kelas-durasi.destroy');
     Route::resource('jenis-kelas', Admin\JenisKelasController::class)->except(['show']);
     Route::get('penilaian', [Admin\PenilaianController::class, 'index'])->name('penilaian.index');
+    Route::get('penilaian/{enrollment}/detail', [Admin\PenilaianController::class, 'detail'])->name('penilaian.detail');
     Route::get('sertifikat', [Admin\SertifikatController::class, 'index'])->name('sertifikat.index');
+    Route::get('sertifikat/{sertifikat}/print', [Admin\SertifikatController::class, 'print'])->name('sertifikat.print');
 
     // Enrollment (pendaftaran peserta ke program pelatihan)
     Route::resource('enrollment', Admin\EnrollmentController::class)->except(['show', 'edit', 'update']);

@@ -32,14 +32,19 @@ class UpdateTugasRequest extends FormRequest
                         ->where('role', 'peserta_didik')
                         ->where('status', 'aktif');
 
-                    if ($proyek->program_pelatihan_id) {
-                        $query->where('program_pelatihan_id', $proyek->program_pelatihan_id);
-                    }
-                    if ($proyek->jenis_kelas_id) {
-                        $query->where('jenis_kelas_id', $proyek->jenis_kelas_id);
-                    }
-                    if ($proyek->durasi_pelatihan) {
-                        $query->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                    if ($proyek->program_pelatihan_id || $proyek->jenis_kelas_id || $proyek->durasi_pelatihan) {
+                        $query->whereHas('enrollments', function ($q) use ($proyek) {
+                            $q->where('status', 'aktif');
+                            if ($proyek->program_pelatihan_id) {
+                                $q->where('program_pelatihan_id', $proyek->program_pelatihan_id);
+                            }
+                            if ($proyek->jenis_kelas_id) {
+                                $q->where('jenis_kelas_id', $proyek->jenis_kelas_id);
+                            }
+                            if ($proyek->durasi_pelatihan) {
+                                $q->where('durasi_pelatihan', $proyek->durasi_pelatihan);
+                            }
+                        });
                     }
 
                     if (!$query->exists()) {

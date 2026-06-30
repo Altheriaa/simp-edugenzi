@@ -85,7 +85,7 @@
                                     {{ $enrollment->programPelatihan->nama_program ?? '-' }}
                                 </td>
                                 <td class="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">
-                                    {{ $enrollment->jenisKelas->nama_kelas ?? '-' }}
+                                    {{ $enrollment->jenisKelas->nama ?? '-' }}
                                     @if($enrollment->durasi_pelatihan)
                                         <span class="text-gray-400">· {{ $enrollment->durasi_pelatihan }}</span>
                                     @endif
